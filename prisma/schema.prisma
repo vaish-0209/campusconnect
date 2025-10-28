@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  STUDENT
+  ADMIN
+  RECRUITER
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  TEST_SCHEDULED
+  TEST_CLEARED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_CLEARED
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+enum EventType {
+  PPT
+  TEST
+  INTERVIEW
+  OTHER
+}
+
+enum DocumentType {
+  RESUME
+  TRANSCRIPT
+  CERTIFICATE
+  NOC
+  OTHER
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  INVITE_SENT
+  PASSWORD_RESET
+  SHORTLIST_UPLOAD
+  DRIVE_PUBLISHED
+  APPLICATION_SUBMITTED
+  STATUS_CHANGED
+  BULK_IMPORT
+}
+
+// ==================== CORE MODELS ====================
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  password      String?
+  role          Role           @default(STUDENT)
+  isActive      Boolean        @default(false)
+  inviteToken   String?        @unique
+  inviteSentAt  DateTime?
+  lastLoginAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  student       Student?
+  notifications Notification[]
+
+  @@index([email])
+  @@index([inviteToken])
+}
+
+model Student {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  rollNo        String        @unique
+  firstName     String
+  lastName      String
+  branch        String
+  cgpa          Float
+  backlogs      Int           @default(0)
+  phone         String?
+  profilePhoto  String?
+  skills        String?
+  github        String?
+  linkedin      String?
+  portfolio     String?
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications  Application[]
+  documents     Document[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([branch, cgpa])
+  @@index([rollNo])
+  @@index([userId])
+}
+
+model Company {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  logo          String?
+  sector        String
+  tier          String?
+  website       String?
+
+  drives        Drive[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([name])
+  @@index([sector])
+}
+
+model Drive {
+  id                String    @id @default(cuid())
+  companyId         String
+  title             String
+  jobDescription    String
+  role              String
+  ctc               Float?
+  ctcBreakup        String?
+  location          String?
+  bond              String?
+  techStack         String?
+
+  minCgpa           Float?
+  maxBacklogs       Int       @default(0)
+  allowedBranches   String?
+
+  registrationStart DateTime
+  registrationEnd   DateTime
+
+  isActive          Boolean   @default(true)
+
+  company           Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  applications      Application[]
+  events            Event[]
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([companyId])
+  @@index([isActive, registrationEnd])
+  @@index([registrationStart, registrationEnd])
+}
+
+model Application {
+  id            String            @id @default(cuid())
+  studentId     String
+  driveId       String
+  status        ApplicationStatus @default(APPLIED)
+  resumeUrl     String?
+  remarks       String?
+  appliedAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  drive         Drive             @relation(fields: [driveId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, driveId])
+  @@index([driveId, status])
+  @@index([studentId])
+  @@index([status])
+}
+
+model Event {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  type          EventType
+  startTime     DateTime
+  endTime       DateTime
+  venue         String?
+  meetingLink   String?
+  driveId       String?
+
+  drive         Drive?    @relation(fields: [driveId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([startTime, type])
+  @@index([driveId])
+  @@index([startTime, endTime])
+}
+
+model Document {
+  id            String       @id @default(cuid())
+  studentId     String
+  type          DocumentType
+  name          String
+  url           String
+  publicId      String
+  version       Int          @default(1)
+  size          Int?
+  uploadedAt    DateTime     @default(now())
+
+  student       Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, type])
+  @@index([studentId])
+}
+
+model Notification {
+  id            String   @id @default(cuid())
+  userId        String
+  title         String
+  message       String
+  type          String
+  isRead        Boolean  @default(false)
+  link          String?
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  userEmail   String
+  action      AuditAction
+  target      String
+  targetId    String?
+  meta        Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([target, targetId])
+  @@index([createdAt])
+}

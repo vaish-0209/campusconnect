@@ -270,7 +270,7 @@ async function main() {
   ];
 
   for (const appData of applicationsData) {
-    await prisma.application.create({ data: appData });
+    await prisma.application.create({ data: appData as any });
   }
   console.log(`✅ Created ${applicationsData.length} applications`);
 

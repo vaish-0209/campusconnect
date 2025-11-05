@@ -197,7 +197,7 @@ export async function GET(req: NextRequest) {
     // Create audit log
     await createAuditLog({
       userId: session.user.id,
-      userEmail: session.user.email,
+      userEmail: session.user.email || "",
       action: "CREATE",
       target: "Analytics",
       meta: {

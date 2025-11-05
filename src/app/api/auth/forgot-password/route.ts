@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid email format", details: error.errors },
+        { error: "Invalid email format", details: (error as any).errors },
         { status: 400 }
       );
     }

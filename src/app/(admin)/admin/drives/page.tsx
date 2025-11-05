@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
@@ -26,7 +26,7 @@ interface Drive {
   applicationsCount: number;
 }
 
-export default function AdminDrivesPage() {
+function DrivesContent() {
   const searchParams = useSearchParams();
   const companyFromUrl = searchParams.get("company") || "";
 
@@ -389,5 +389,13 @@ export default function AdminDrivesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminDrivesPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <DrivesContent />
+    </Suspense>
   );
 }

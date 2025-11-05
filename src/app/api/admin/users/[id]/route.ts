@@ -146,7 +146,7 @@ export async function PATCH(
     // Create audit log
     await createAuditLog({
       userId: session.user.id,
-      userEmail: session.user.email,
+      userEmail: session.user.email || "",
       action: "UPDATE",
       target: "User",
       targetId: params.id,
@@ -221,7 +221,7 @@ export async function DELETE(
     // Create audit log
     await createAuditLog({
       userId: session.user.id,
-      userEmail: session.user.email,
+      userEmail: session.user.email || "",
       action: "DELETE",
       target: "User",
       targetId: params.id,

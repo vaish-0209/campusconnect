@@ -103,7 +103,7 @@ export async function POST(
     // Create audit log
     await createAuditLog({
       userId: session.user.id,
-      userEmail: session.user.email,
+      userEmail: session.user.email || "",
       action: "SHORTLIST_UPLOAD",
       target: "Drive",
       targetId: params.id,

@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
         let errorMessage = "Invalid data";
 
         if (error instanceof z.ZodError) {
-          errorMessage = error.errors?.[0]?.message || error.message || "Validation failed";
+          errorMessage = (error as any).errors?.[0]?.message || error.message || "Validation failed";
         } else if (error instanceof Error) {
           errorMessage = error.message;
         }

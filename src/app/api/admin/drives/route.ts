@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
           company: {
             name: { contains: search },
           },
-        });
+        } as any);
       }
 
       conditions.push({ OR: searchConditions });
@@ -198,10 +198,10 @@ export async function POST(req: NextRequest) {
         ctcBreakup: data.ctcBreakup,
         location: data.location,
         bond: data.bond,
-        techStack: data.techStack,
+        techStack: data.techStack as any,
         minCgpa: data.minCgpa,
         maxBacklogs: data.maxBacklogs,
-        allowedBranches: data.allowedBranches,
+        allowedBranches: data.allowedBranches as any,
         registrationStart: startDate,
         registrationEnd: endDate,
         isActive: true,

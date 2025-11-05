@@ -62,8 +62,8 @@ const createUserSchema = z.object({
       "Password must contain uppercase, lowercase, and number"
     ),
   role: z.enum(["ADMIN", "RECRUITER"], {
-    errorMap: () => ({ message: "Role must be ADMIN or RECRUITER" }),
-  }),
+    invalid_type_error: "Role must be ADMIN or RECRUITER",
+  } as any),
 });
 
 // POST /api/admin/users - Create new admin user

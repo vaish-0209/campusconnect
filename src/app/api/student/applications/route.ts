@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
     const where = {
       studentId: student.id,
-      ...(status && { status }),
+      ...(status && { status: status as any }),
     };
 
     const [applications, total] = await Promise.all([

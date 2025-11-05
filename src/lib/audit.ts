@@ -40,7 +40,7 @@ export async function createAuditLog({
         action,
         target,
         targetId,
-        meta: meta || null,
+        meta: meta || undefined,
         ipAddress,
         userAgent,
       },

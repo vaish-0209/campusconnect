@@ -65,7 +65,7 @@ export async function sendPasswordResetEmail({
   resetLink: string;
   userName: string;
 }) {
-  const html = render(PasswordResetEmail({ userName, resetLink }));
+  const html = await render(PasswordResetEmail({ userName, resetLink }));
 
   return sendEmail({
     to,

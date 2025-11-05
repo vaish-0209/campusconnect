@@ -77,7 +77,6 @@ export async function GET(req: NextRequest) {
           name: drive.company.name,
           logo: drive.company.logo,
           sector: drive.company.sector,
-          tier: drive.company.tier,
         },
         title: drive.title,
         role: drive.role,

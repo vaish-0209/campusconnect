@@ -11,30 +11,53 @@ export default function ImportStudentsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [results, setResults] = useState<any>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setResults(null);
+      setParseError(null);
     }
   };
 
   const parseCSV = (text: string) => {
-    const lines = text.split("\n").filter((line) => line.trim());
-    const headers = lines[0].split(",").map((h) => h.trim());
+    // Handle different line endings (Windows \r\n, Unix \n, Mac \r)
+    const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter((line) => line.trim());
+
+    if (lines.length < 2) {
+      throw new Error("CSV file is empty or has no data rows");
+    }
+
+    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+
+    // Validate required headers
+    const requiredHeaders = ["rollno", "firstname", "lastname", "email", "branch", "cgpa"];
+    const missingHeaders = requiredHeaders.filter((h) => !headers.includes(h));
+
+    if (missingHeaders.length > 0) {
+      throw new Error(`Missing required columns: ${missingHeaders.join(", ")}`);
+    }
 
     const students = [];
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(",").map((v) => v.trim());
+      const line = lines[i].trim();
+      if (!line) continue; // Skip empty lines
+
+      const values = line.split(",").map((v) => v.trim());
       const student: any = {};
 
       headers.forEach((header, index) => {
-        student[header] = values[index];
+        student[header] = values[index] || "";
       });
 
-      students.push(student);
+      // Only add if has required fields
+      if (student.rollno && student.email) {
+        students.push(student);
+      }
     }
 
+    console.log("Parsed students:", students);
     return students;
   };
 
@@ -47,9 +70,27 @@ export default function ImportStudentsPage() {
     }
 
     setUploading(true);
+    setResults(null);
+    setParseError(null);
+
     try {
       const text = await file.text();
-      const students = parseCSV(text);
+
+      // Parse CSV with better error handling
+      let students;
+      try {
+        students = parseCSV(text);
+      } catch (parseError: any) {
+        setParseError(parseError.message);
+        setUploading(false);
+        return;
+      }
+
+      if (students.length === 0) {
+        setParseError("No valid student data found in CSV file. Please check that your CSV has data rows after the header.");
+        setUploading(false);
+        return;
+      }
 
       const response = await fetch("/api/admin/students/bulk-invite", {
         method: "POST",
@@ -65,11 +106,11 @@ export default function ImportStudentsPage() {
           setTimeout(() => router.push("/admin/students"), 2000);
         }
       } else {
-        alert(data.error || "Failed to import students");
+        alert(`❌ Import Failed\n\n${data.error || "Failed to import students"}\n\nPlease check your CSV file and try again.`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error importing:", error);
-      alert("An error occurred during import");
+      alert(`❌ Import Error\n\n${error.message || "An unexpected error occurred"}\n\nPlease check the browser console for more details.`);
     } finally {
       setUploading(false);
     }
@@ -220,6 +261,32 @@ export default function ImportStudentsPage() {
             </button>
           </form>
         </div>
+
+        {/* Parse Error Display */}
+        {parseError && (
+          <div className="glass-card border-2 border-red-500/30 rounded-xl p-6 bg-red-500/10 animate-in fade-in">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <XCircle className="w-6 h-6 text-red-400" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-red-400 mb-2">CSV Format Error</h3>
+                <p className="text-red-300 mb-4">{parseError}</p>
+                <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-red-300 mb-2">How to fix:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-red-200">
+                    <li>Download the CSV template using the button above</li>
+                    <li>Make sure your CSV has these exact column names (case-insensitive): <code className="text-red-300 font-mono">rollNo, firstName, lastName, email, branch, cgpa, backlogs</code></li>
+                    <li>Check that there are no extra spaces or special characters</li>
+                    <li>Ensure the file is saved in CSV format (not Excel)</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Results */}
         {results && (

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { User, Mail, Phone, GraduationCap, Award, Code, Save, Edit2, CheckCircle } from "lucide-react";
+import { User, Mail, Phone, GraduationCap, Award, Code, Save, Edit2, CheckCircle, Camera, FileText, Upload, X } from "lucide-react";
+import { StudentNavbar } from "@/components/student/StudentNavbar";
 
 interface StudentProfile {
   id: string;
@@ -20,6 +21,7 @@ interface StudentProfile {
   github: string | null;
   linkedin: string | null;
   portfolio: string | null;
+  profileImage: string | null;
 }
 
 export default function StudentProfilePage() {
@@ -27,6 +29,9 @@ export default function StudentProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [resume, setResume] = useState<string | null>(null);
+  const [resumeFileName, setResumeFileName] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     phone: "",
     skills: "",
@@ -46,6 +51,11 @@ export default function StudentProfilePage() {
       if (response.ok) {
         const data = await response.json();
         setProfile(data.student);
+        setProfileImage(data.student.profileImage);
+        setResume(data.student.resume);
+        if (data.student.resume) {
+          setResumeFileName("Current Resume");
+        }
         setFormData({
           phone: data.student.phone || "",
           skills: data.student.skills || "",
@@ -61,6 +71,103 @@ export default function StudentProfilePage() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image size should be less than 5MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        alert("Please upload an image file");
+        return;
+      }
+
+      try {
+        // Upload to Cloudinary
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'profile_photos');
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || 'Failed to upload image');
+          return;
+        }
+
+        const data = await response.json();
+        setProfileImage(data.url);
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Failed to upload image');
+      }
+    }
+  };
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Resume size should be less than 5MB");
+        return;
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/msword",
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        alert("Please upload a PDF or DOCX file");
+        return;
+      }
+
+      try {
+        setResumeFileName(file.name);
+
+        // Upload to Cloudinary
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'resumes');
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || 'Failed to upload resume');
+          setResumeFileName(null);
+          return;
+        }
+
+        const data = await response.json();
+        setResume(data.url);
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Failed to upload resume');
+        setResumeFileName(null);
+      }
+    }
+  };
+
+  const removeResume = () => {
+    setResume(null);
+    setResumeFileName(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -69,7 +176,11 @@ export default function StudentProfilePage() {
       const response = await fetch("/api/student/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          profileImage: profileImage,
+          resume: resume,
+        }),
       });
 
       if (response.ok) {
@@ -103,40 +214,7 @@ export default function StudentProfilePage() {
       {/* Animated gradient orbs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
 
-      {/* Navbar */}
-      <nav className="glass-card border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-8">
-              <h1 className="text-xl font-semibold text-foreground tracking-wide">
-                Campus<span className="text-primary">Connect</span>
-              </h1>
-              <div className="hidden md:flex items-center gap-2">
-                <Link href="/student/dashboard" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Dashboard
-                </Link>
-                <Link href="/student/drives" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Drives
-                </Link>
-                <Link href="/student/companies" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Companies
-                </Link>
-                <Link href="/student/applications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Applications
-                </Link>
-                <Link href="/student/calendar" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Calendar
-                </Link>
-              </div>
-            </div>
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </nav>
+      <StudentNavbar />
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-12 relative z-10">
@@ -163,8 +241,31 @@ export default function StudentProfilePage() {
         <div className="glass-card border border-border/50 rounded-2xl p-8 mb-8">
           {/* Header */}
           <div className="flex items-center gap-6 mb-8 pb-8 border-b border-border/50">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-purple-400 flex items-center justify-center text-white text-3xl font-bold">
-              {profile.firstName[0]}{profile.lastName[0]}
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary to-purple-400 flex items-center justify-center text-white text-3xl font-bold">
+                    {profile.firstName[0]}{profile.lastName[0]}
+                  </div>
+                )}
+              </div>
+              {editing && (
+                <label className="absolute bottom-0 right-0 p-2 bg-primary rounded-full cursor-pointer hover:opacity-90 transition-all shadow-lg">
+                  <Camera className="w-4 h-4 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
             <div>
               <h3 className="text-2xl font-bold text-foreground mb-1">
@@ -241,6 +342,37 @@ export default function StudentProfilePage() {
                   placeholder="https://yourportfolio.com"
                   className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Resume
+                </label>
+                {resume ? (
+                  <div className="flex items-center gap-3 p-4 bg-card border border-border/50 rounded-lg">
+                    <FileText className="w-5 h-5 text-primary" />
+                    <span className="flex-1 text-foreground text-sm">{resumeFileName}</span>
+                    <button
+                      type="button"
+                      onClick={removeResume}
+                      className="p-2 text-muted-foreground hover:text-red-400 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer bg-card hover:bg-secondary/20 transition-all">
+                    <Upload className="w-8 h-8 mb-2 text-primary" />
+                    <p className="text-sm text-muted-foreground">Upload Resume (PDF or DOCX)</p>
+                    <p className="text-xs text-muted-foreground mt-1">Max 5MB</p>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.docx,.doc"
+                      onChange={handleResumeUpload}
+                    />
+                  </label>
+                )}
               </div>
 
               <div className="flex gap-3 pt-4">

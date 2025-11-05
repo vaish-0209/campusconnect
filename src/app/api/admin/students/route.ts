@@ -22,19 +22,32 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {
-      ...(search && {
-        OR: [
-          { firstName: { contains: search, mode: "insensitive" as const } },
-          { lastName: { contains: search, mode: "insensitive" as const } },
-          { rollNo: { contains: search, mode: "insensitive" as const } },
-          { user: { email: { contains: search, mode: "insensitive" as const } } },
-        ],
-      }),
-      ...(branch && { branch }),
-      ...(minCgpa && { cgpa: { gte: parseFloat(minCgpa) } }),
-      ...(maxBacklogs !== null && { backlogs: { lte: parseInt(maxBacklogs || "0") } }),
-    };
+    const where: any = {};
+
+    // Add search filter
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { rollNo: { contains: search } },
+        { user: { email: { contains: search } } },
+      ];
+    }
+
+    // Add branch filter
+    if (branch) {
+      where.branch = branch;
+    }
+
+    // Add CGPA filter
+    if (minCgpa) {
+      where.cgpa = { gte: parseFloat(minCgpa) };
+    }
+
+    // Add backlogs filter
+    if (maxBacklogs !== null) {
+      where.backlogs = { lte: parseInt(maxBacklogs || "0") };
+    }
 
     const [students, total] = await Promise.all([
       prisma.student.findMany({

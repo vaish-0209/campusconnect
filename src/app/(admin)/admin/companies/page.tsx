@@ -2,17 +2,27 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Building2, Plus, ExternalLink } from "lucide-react";
+import { Building2, Plus, ExternalLink, X, Upload } from "lucide-react";
 
 interface Company {
   id: string;
   name: string;
   logo: string | null;
   sector: string;
-  tier: string | null;
   website: string | null;
+  description: string | null;
+  packageRange: string | null;
+  eligibilityMinCGPA: number | null;
+  eligibilityMaxBacklogs: number | null;
+  eligibilityBranches: string | null;
+  hrContactName: string | null;
+  hrContactEmail: string | null;
+  hrContactPhone: string | null;
   drivesCount: number;
+  totalApplications: number;
+  totalOffers: number;
   createdAt: string;
 }
 
@@ -25,10 +35,23 @@ export default function AdminCompaniesPage() {
     name: "",
     logo: "",
     sector: "",
-    tier: "",
     website: "",
+    description: "",
+    packageRange: "",
+    eligibilityMinCGPA: "",
+    eligibilityMaxBacklogs: "",
+    eligibilityBranches: "",
+    hrContactName: "",
+    hrContactEmail: "",
+    hrContactPhone: "",
   });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchCompanies();
@@ -51,7 +74,22 @@ export default function AdminCompaniesPage() {
 
   const openCreateModal = () => {
     setEditingCompany(null);
-    setFormData({ name: "", logo: "", sector: "", tier: "", website: "" });
+    setFormData({
+      name: "",
+      logo: "",
+      sector: "",
+      website: "",
+      description: "",
+      packageRange: "",
+      eligibilityMinCGPA: "",
+      eligibilityMaxBacklogs: "",
+      eligibilityBranches: "",
+      hrContactName: "",
+      hrContactEmail: "",
+      hrContactPhone: "",
+    });
+    setLogoFile(null);
+    setLogoPreview("");
     setShowModal(true);
   };
 
@@ -61,10 +99,37 @@ export default function AdminCompaniesPage() {
       name: company.name,
       logo: company.logo || "",
       sector: company.sector,
-      tier: company.tier || "",
       website: company.website || "",
+      description: company.description || "",
+      packageRange: company.packageRange || "",
+      eligibilityMinCGPA: company.eligibilityMinCGPA?.toString() || "",
+      eligibilityMaxBacklogs: company.eligibilityMaxBacklogs?.toString() || "",
+      eligibilityBranches: company.eligibilityBranches || "",
+      hrContactName: company.hrContactName || "",
+      hrContactEmail: company.hrContactEmail || "",
+      hrContactPhone: company.hrContactPhone || "",
     });
+    setLogoFile(null);
+    setLogoPreview(company.logo || "");
     setShowModal(true);
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const showToast = (msg: string) => {
+    setMessage(msg);
+    setShowMessage(true);
+    setTimeout(() => setShowMessage(false), 4000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,44 +141,62 @@ export default function AdminCompaniesPage() {
         ? `/api/admin/companies/${editingCompany.id}`
         : "/api/admin/companies";
 
+      const payload = {
+        ...formData,
+        logo: logoPreview || formData.logo,
+        eligibilityMinCGPA: formData.eligibilityMinCGPA ? parseFloat(formData.eligibilityMinCGPA) : undefined,
+        eligibilityMaxBacklogs: formData.eligibilityMaxBacklogs ? parseInt(formData.eligibilityMaxBacklogs) : undefined,
+      };
+
       const response = await fetch(url, {
         method: editingCompany ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         setShowModal(false);
         fetchCompanies();
+        showToast("Company saved successfully");
       } else {
         const error = await response.json();
-        alert(error.error || "Failed to save company");
+        showToast(error.error || "Failed to save company");
       }
     } catch (error) {
-      alert("An error occurred");
+      showToast("An error occurred");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete ${name}?`)) {
-      return;
-    }
+    setDeleteTarget({ id, name });
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
 
     try {
-      const response = await fetch(`/api/admin/companies/${id}`, {
+      const response = await fetch(`/api/admin/companies/${deleteTarget.id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
+        setShowDeleteDialog(false);
+        setDeleteTarget(null);
         fetchCompanies();
+        showToast("Company deleted successfully");
       } else {
         const error = await response.json();
-        alert(error.error || "Failed to delete company");
+        setShowDeleteDialog(false);
+        setDeleteTarget(null);
+        showToast(error.error || "Failed to delete company");
       }
     } catch (error) {
-      alert("An error occurred");
+      setShowDeleteDialog(false);
+      setDeleteTarget(null);
+      showToast("An error occurred");
     }
   };
 
@@ -145,6 +228,9 @@ export default function AdminCompaniesPage() {
                 <Link href="/admin/drives" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                   Drives
                 </Link>
+                <Link href="/admin/applications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
+                  Applications
+                </Link>
                 <Link href="/admin/events" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                   Events
                 </Link>
@@ -154,11 +240,11 @@ export default function AdminCompaniesPage() {
               <Link href="/admin/analytics" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                 Analytics
               </Link>
-              <form action="/api/auth/signout" method="POST">
-                <button type="submit" className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
+              
+                <button onClick={() => signOut({ callbackUrl: "/login" })}  className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
                   Logout
                 </button>
-              </form>
+              
             </div>
           </div>
         </div>
@@ -212,11 +298,13 @@ export default function AdminCompaniesPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   {company.logo ? (
-                    <img
-                      src={company.logo}
-                      alt={company.name}
-                      className="w-16 h-16 object-contain rounded-lg bg-card p-2"
-                    />
+                    <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center">
+                      <img
+                        src={company.logo}
+                        alt={company.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   ) : (
                     <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
                       <span className="text-2xl font-bold text-primary">
@@ -224,9 +312,9 @@ export default function AdminCompaniesPage() {
                       </span>
                     </div>
                   )}
-                  {company.tier && (
-                    <span className="px-3 py-1 text-xs bg-primary/10 text-primary border border-primary/20 rounded-full">
-                      {company.tier}
+                  {company.packageRange && (
+                    <span className="px-3 py-1 text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full font-medium">
+                      {company.packageRange}
                     </span>
                   )}
                 </div>
@@ -234,37 +322,46 @@ export default function AdminCompaniesPage() {
                 <h3 className="text-lg font-semibold text-foreground mb-2">
                   {company.name}
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">{company.sector}</p>
+                <p className="text-sm text-muted-foreground mb-2">{company.sector}</p>
 
-                {company.website && (
-                  <a
-                    href={company.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 mb-4"
-                  >
-                    Visit Website <ExternalLink className="w-3 h-3" />
-                  </a>
+                {company.description && (
+                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                    {company.description}
+                  </p>
                 )}
 
-                <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                  <span className="text-sm text-muted-foreground">
-                    {company.drivesCount} drive{company.drivesCount !== 1 ? "s" : ""}
-                  </span>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => openEditModal(company)}
-                      className="text-sm text-primary hover:text-primary/80 font-medium"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(company.id, company.name)}
-                      className="text-sm text-red-400 hover:text-red-300 font-medium"
-                    >
-                      Delete
-                    </button>
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3 mb-4 py-3 border-y border-border/50">
+                  <Link
+                    href={`/admin/drives?company=${encodeURIComponent(company.name)}`}
+                    className="text-center hover:bg-primary/5 rounded-lg p-3 transition-colors"
+                  >
+                    <div className="text-2xl font-semibold text-primary">
+                      {company.drivesCount}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Active Drives</div>
+                  </Link>
+                  <div className="text-center p-3">
+                    <div className="text-2xl font-semibold text-green-400">
+                      {company.totalOffers}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Offers Made</div>
                   </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3">
+                  <button
+                    onClick={() => openEditModal(company)}
+                    className="text-sm text-primary hover:text-primary/80 font-medium"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(company.id, company.name)}
+                    className="text-sm text-red-400 hover:text-red-300 font-medium"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -273,13 +370,13 @@ export default function AdminCompaniesPage() {
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-md">
-            <div className="glass-card border border-border/50 rounded-xl p-8 max-w-md w-full mx-4">
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-md p-4">
+            <div className="glass-card border border-border/50 rounded-xl p-8 max-w-2xl w-full">
               <h3 className="text-2xl font-bold text-foreground mb-6">
                 {editingCompany ? "Edit Company" : "Add New Company"}
               </h3>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Company Name *
@@ -295,77 +392,217 @@ export default function AdminCompaniesPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Sector *
-                  </label>
-                  <select
-                    value={formData.sector}
-                    onChange={(e) =>
-                      setFormData({ ...formData, sector: e.target.value })
-                    }
-                    required
-                    className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none"
-                  >
-                    <option value="">Select Sector</option>
-                    <option value="IT">IT</option>
-                    <option value="Core">Core</option>
-                    <option value="Consulting">Consulting</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Analytics">Analytics</option>
-                    <option value="Other">Other</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Sector *
+                    </label>
+                    <select
+                      value={formData.sector}
+                      onChange={(e) =>
+                        setFormData({ ...formData, sector: e.target.value })
+                      }
+                      required
+                      className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none"
+                    >
+                      <option value="">Select Sector</option>
+                      <option value="IT">IT</option>
+                      <option value="Core">Core</option>
+                      <option value="Consulting">Consulting</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Analytics">Analytics</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Package Range
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.packageRange}
+                      onChange={(e) =>
+                        setFormData({ ...formData, packageRange: e.target.value })
+                      }
+                      placeholder="e.g., 12-15 LPA"
+                      className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Tier
+                    Description
                   </label>
-                  <select
-                    value={formData.tier}
+                  <textarea
+                    value={formData.description}
                     onChange={(e) =>
-                      setFormData({ ...formData, tier: e.target.value })
+                      setFormData({ ...formData, description: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none"
-                  >
-                    <option value="">Select Tier</option>
-                    <option value="Dream">Dream</option>
-                    <option value="Super Dream">Super Dream</option>
-                    <option value="Regular">Regular</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Logo URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.logo}
-                    onChange={(e) =>
-                      setFormData({ ...formData, logo: e.target.value })
-                    }
-                    placeholder="https://..."
-                    className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                    rows={2}
+                    placeholder="Brief company description..."
+                    className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground resize-none"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Website URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.website}
-                    onChange={(e) =>
-                      setFormData({ ...formData, website: e.target.value })
-                    }
-                    placeholder="https://..."
-                    className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Company Logo
+                    </label>
+                    <div className="flex items-center gap-3">
+                      {logoPreview && (
+                        <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 bg-card border border-border/50">
+                          <img
+                            src={logoPreview}
+                            alt="Logo preview"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      )}
+                      <label className="flex-1 cursor-pointer">
+                        <div className="w-full px-4 py-3 bg-card border border-border/50 text-muted-foreground rounded-lg hover:border-primary/50 transition-colors flex items-center gap-2">
+                          <Upload className="w-4 h-4" />
+                          <span className="text-sm">
+                            {logoFile ? logoFile.name : "Upload logo image"}
+                          </span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoChange}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Website URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.website}
+                      onChange={(e) =>
+                        setFormData({ ...formData, website: e.target.value })
+                      }
+                      placeholder="https://..."
+                      className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex space-x-4 pt-4">
+                <div className="border-t border-border/50 pt-4 mt-4">
+                  <h4 className="text-sm font-semibold text-foreground mb-3">Eligibility Criteria</h4>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
+                        Min CGPA
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="10"
+                        value={formData.eligibilityMinCGPA}
+                        onChange={(e) =>
+                          setFormData({ ...formData, eligibilityMinCGPA: e.target.value })
+                        }
+                        placeholder="e.g., 7.0"
+                        className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
+                        Max Backlogs
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.eligibilityMaxBacklogs}
+                        onChange={(e) =>
+                          setFormData({ ...formData, eligibilityMaxBacklogs: e.target.value })
+                        }
+                        placeholder="e.g., 0"
+                        className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Allowed Branches
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.eligibilityBranches}
+                      onChange={(e) =>
+                        setFormData({ ...formData, eligibilityBranches: e.target.value })
+                      }
+                      placeholder="e.g., CSE, IT, ECE"
+                      className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-border/50 pt-4 mt-4">
+                  <h4 className="text-sm font-semibold text-foreground mb-3">HR Contact</h4>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
+                        HR Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.hrContactName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, hrContactName: e.target.value })
+                        }
+                        placeholder="Contact person name"
+                        className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-muted-foreground mb-2">
+                          HR Email
+                        </label>
+                        <input
+                          type="email"
+                          value={formData.hrContactEmail}
+                          onChange={(e) =>
+                            setFormData({ ...formData, hrContactEmail: e.target.value })
+                          }
+                          placeholder="hr@company.com"
+                          className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-muted-foreground mb-2">
+                          HR Phone
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.hrContactPhone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, hrContactPhone: e.target.value })
+                          }
+                          placeholder="+91 9876543210"
+                          className="w-full px-4 py-3 bg-card border border-border/50 text-foreground rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none placeholder-muted-foreground"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex space-x-4 pt-4 sticky bottom-0 bg-card">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
@@ -382,6 +619,83 @@ export default function AdminCompaniesPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Toast Notification */}
+        {showMessage && (
+          <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top">
+            <div className="glass-card border border-border/50 rounded-xl p-4 shadow-2xl max-w-md">
+              <div className="flex items-start gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  message.includes("successfully")
+                    ? "bg-green-500/10 border border-green-500/20"
+                    : "bg-red-500/10 border border-red-500/20"
+                }`}>
+                  {message.includes("successfully") ? (
+                    <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h4 className={`font-semibold mb-1 ${
+                    message.includes("successfully") ? "text-green-400" : "text-red-400"
+                  }`}>
+                    {message.includes("successfully") ? "Success" : "Error"}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">{message}</p>
+                </div>
+                <button
+                  onClick={() => setShowMessage(false)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        {showDeleteDialog && deleteTarget && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="glass-card border border-border/50 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Delete Company</h3>
+                  <p className="text-muted-foreground">
+                    Are you sure you want to delete <span className="font-semibold text-foreground">{deleteTarget.name}</span>? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setShowDeleteDialog(false);
+                    setDeleteTarget(null);
+                  }}
+                  className="px-6 py-2.5 bg-card border border-border/50 text-foreground rounded-lg hover:border-border transition-all font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-6 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20 transition-all font-medium"
+                >
+                  Delete Company
+                </button>
+              </div>
             </div>
           </div>
         )}

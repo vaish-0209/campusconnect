@@ -43,12 +43,23 @@ export async function POST(req: NextRequest) {
       const studentData = students[i];
 
       try {
+        // Normalize field names (handle both camelCase and lowercase)
+        const normalizedData = {
+          rollNo: studentData.rollNo || studentData.rollno,
+          firstName: studentData.firstName || studentData.firstname,
+          lastName: studentData.lastName || studentData.lastname,
+          email: studentData.email,
+          branch: studentData.branch,
+          cgpa: studentData.cgpa,
+          backlogs: studentData.backlogs,
+        };
+
         // Validate data
         const validated = studentSchema.parse({
-          ...studentData,
-          cgpa: parseFloat(studentData.cgpa),
-          backlogs: studentData.backlogs
-            ? parseInt(studentData.backlogs)
+          ...normalizedData,
+          cgpa: parseFloat(normalizedData.cgpa),
+          backlogs: normalizedData.backlogs
+            ? parseInt(normalizedData.backlogs)
             : 0,
         });
 
@@ -112,13 +123,18 @@ export async function POST(req: NextRequest) {
         results.imported++;
       } catch (error) {
         results.failed++;
+        let errorMessage = "Invalid data";
+
+        if (error instanceof z.ZodError) {
+          errorMessage = error.errors?.[0]?.message || error.message || "Validation failed";
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+
         results.errors.push({
           row: i + 1,
           data: studentData,
-          error:
-            error instanceof z.ZodError
-              ? error.errors[0].message
-              : "Invalid data",
+          error: errorMessage,
         });
       }
     }

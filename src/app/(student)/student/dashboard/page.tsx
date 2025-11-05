@@ -6,6 +6,7 @@ import { checkEligibility } from "@/lib/eligibility";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { FileText, CheckCircle, Video, Award, Building2, Calendar, TrendingUp } from "lucide-react";
+import { StudentNavbar } from "@/components/student/StudentNavbar";
 
 export default async function StudentDashboard() {
   const session = await getServerSession(authOptions);
@@ -67,53 +68,7 @@ export default async function StudentDashboard() {
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "1s" }} />
 
       {/* Navbar */}
-      <nav className="glass-card border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-8">
-              <h1 className="text-xl font-semibold text-foreground tracking-wide">
-                Campus<span className="text-primary">Connect</span>
-              </h1>
-              <div className="hidden md:flex items-center gap-2">
-                <Link href="/student/dashboard" className="px-4 py-2 text-sm font-medium text-foreground bg-primary/10 border border-primary/20 rounded-full transition-all">
-                  Dashboard
-                </Link>
-                <Link href="/student/drives" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Drives
-                </Link>
-                <Link href="/student/companies" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Companies
-                </Link>
-                <Link href="/student/applications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Applications
-                </Link>
-                <Link href="/student/calendar" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Calendar
-                </Link>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link href="/student/notifications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                Notifications
-              </Link>
-              <Link href="/student/profile" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                Profile
-              </Link>
-              <span className="text-sm text-muted-foreground">
-                {student?.firstName} {student?.lastName}
-              </span>
-              <form action="/api/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  className="text-sm text-muted-foreground hover:text-foreground"
-                >
-                  Logout
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <StudentNavbar studentName={`${student?.firstName} ${student?.lastName}`} />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">

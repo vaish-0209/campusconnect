@@ -1,0 +1,16 @@
+rollNo,firstName,lastName,email,branch,cgpa,backlogs
+1BM21CS101,Rajesh,Kumar,rajesh.kumar@student.bmsce.ac.in,CSE,8.5,0
+1BM21CS102,Priya,Sharma,priya.sharma@student.bmsce.ac.in,CSE,9.2,0
+1BM21CS103,Amit,Patel,amit.patel@student.bmsce.ac.in,CSE,7.8,1
+1BM21IT101,Sneha,Reddy,sneha.reddy@student.bmsce.ac.in,IT,8.9,0
+1BM21IT102,Vikram,Singh,vikram.singh@student.bmsce.ac.in,IT,8.0,0
+1BM21ECE101,Ananya,Iyer,ananya.iyer@student.bmsce.ac.in,ECE,8.7,0
+1BM21ECE102,Rohan,Gupta,rohan.gupta@student.bmsce.ac.in,ECE,7.5,2
+1BM21MECH101,Kavya,Nair,kavya.nair@student.bmsce.ac.in,MECH,8.3,0
+1BM21CS104,Arjun,Mehta,arjun.mehta@student.bmsce.ac.in,CSE,8.8,0
+1BM21IT103,Divya,Shah,divya.shah@student.bmsce.ac.in,IT,7.9,1
+1BM21CS105,Karan,Joshi,karan.joshi@student.bmsce.ac.in,CSE,8.6,0
+1BM21CS106,Neha,Desai,neha.desai@student.bmsce.ac.in,CSE,9.0,0
+1BM21IT104,Ravi,Krishnan,ravi.krishnan@student.bmsce.ac.in,IT,8.4,0
+1BM21ECE103,Sanya,Kapoor,sanya.kapoor@student.bmsce.ac.in,ECE,8.1,1
+1BM21MECH102,Aditya,Rao,aditya.rao@student.bmsce.ac.in,MECH,7.7,1

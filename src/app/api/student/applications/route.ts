@@ -125,6 +125,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Drive not found" }, { status: 404 });
     }
 
+    // Auto-attach resume from profile if not provided
+    const finalResumeUrl = resumeUrl || student.resume || undefined;
+
     // Check if registration is open
     const now = new Date();
     if (now < drive.registrationStart || now > drive.registrationEnd) {
@@ -172,7 +175,7 @@ export async function POST(req: NextRequest) {
       data: {
         studentId: student.id,
         driveId,
-        resumeUrl,
+        resumeUrl: finalResumeUrl,
         status: "APPLIED",
       },
     });

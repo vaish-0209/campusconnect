@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
     // Find user with matching token and valid expiry
     const user = await prisma.user.findFirst({
       where: {
-        inviteToken: hashedToken,
-        inviteSentAt: {
+        resetToken: hashedToken,
+        resetTokenExpiry: {
           gte: new Date(), // Token not expired
         },
       },
@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       data: {
         password: hashedPassword,
-        inviteToken: null,
-        inviteSentAt: null,
+        resetToken: null,
+        resetTokenExpiry: null,
       },
     });
 

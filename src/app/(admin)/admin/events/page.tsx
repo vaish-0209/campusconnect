@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Calendar, Plus, Edit, Trash2, MapPin, Video, Clock, Building2 } from "lucide-react";
+import { Calendar, Plus, Edit, Trash2, MapPin, Video, Clock, Building2, List, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Event {
   id: string;
@@ -40,6 +41,10 @@ export default function AdminEventsPage() {
     meetingLink: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showDayEvents, setShowDayEvents] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -172,6 +177,57 @@ export default function AdminEventsPage() {
     }
   };
 
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+
+    // Add empty cells for days before the first of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+
+    return days;
+  };
+
+  const getEventsForDate = (date: Date | null) => {
+    if (!date) return [];
+    return events.filter(event => {
+      const eventDate = new Date(event.startTime);
+      return eventDate.toDateString() === date.toDateString();
+    });
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const isToday = (date: Date | null) => {
+    if (!date) return false;
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  const handleDateClick = (date: Date | null, dayEvents: Event[]) => {
+    if (!date || dayEvents.length === 0) return;
+    setSelectedDate(date);
+    setShowDayEvents(true);
+  };
+
   if (loading) {
     return <LoadingSpinner size="lg" />;
   }
@@ -204,6 +260,9 @@ export default function AdminEventsPage() {
                 <Link href="/admin/drives" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                   Drives
                 </Link>
+                <Link href="/admin/applications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
+                  Applications
+                </Link>
                 <Link href="/admin/events" className="px-4 py-2 text-sm font-medium text-foreground bg-primary/10 border border-primary/20 rounded-full transition-all">
                   Events
                 </Link>
@@ -213,11 +272,11 @@ export default function AdminEventsPage() {
               <Link href="/admin/analytics" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                 Analytics
               </Link>
-              <form action="/api/auth/signout" method="POST">
-                <button type="submit" className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
+              
+                <button onClick={() => signOut({ callbackUrl: "/login" })}  className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
                   Logout
                 </button>
-              </form>
+              
             </div>
           </div>
         </div>
@@ -225,7 +284,7 @@ export default function AdminEventsPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-5xl font-bold bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
               Events Management
@@ -234,94 +293,205 @@ export default function AdminEventsPage() {
               Schedule and manage placement events
             </p>
           </div>
-          <button
-            onClick={openCreateModal}
-            className="gradient-primary text-white rounded-full px-6 py-3 hover:opacity-90 transition-all font-medium flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Create Event
-          </button>
-        </div>
-
-        {/* Events List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.length > 0 ? (
-            events.map((event) => (
-              <div key={event.id} className="glass-card border border-border/50 rounded-xl p-6 hover:border-primary/30 transition-all">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getEventTypeColor(event.type)}`}>
-                        {event.type}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-1">{event.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{event.drive.company.name} - {event.drive.title}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openEditModal(event)}
-                      className="p-2 hover:bg-primary/10 rounded-lg transition-all"
-                    >
-                      <Edit className="w-4 h-4 text-primary" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(event.id, event.title)}
-                      className="p-2 hover:bg-red-500/10 rounded-lg transition-all"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-400" />
-                    </button>
-                  </div>
-                </div>
-
-                {event.description && (
-                  <p className="text-sm text-muted-foreground mb-4">{event.description}</p>
-                )}
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>
-                      {new Date(event.startTime).toLocaleString()} - {new Date(event.endTime).toLocaleTimeString()}
-                    </span>
-                  </div>
-
-                  {event.venue && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
-                      <span>{event.venue}</span>
-                    </div>
-                  )}
-
-                  {event.meetingLink && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Video className="w-4 h-4 text-primary" />
-                      <a
-                        href={event.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline truncate"
-                      >
-                        Join Meeting
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-12">
-              <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground">No events scheduled yet</p>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 glass-card border border-border/50 rounded-full p-1">
               <button
-                onClick={openCreateModal}
-                className="mt-4 text-primary hover:underline"
+                onClick={() => setViewMode('calendar')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                  viewMode === 'calendar'
+                    ? 'gradient-primary text-white'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                Create your first event
+                <Calendar className="w-4 h-4" />
+                Calendar
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                  viewMode === 'list'
+                    ? 'gradient-primary text-white'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <List className="w-4 h-4" />
+                List
               </button>
             </div>
-          )}
+            <button
+              onClick={openCreateModal}
+              className="gradient-primary text-white rounded-full px-6 py-3 hover:opacity-90 transition-all font-medium flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Create Event
+            </button>
+          </div>
         </div>
+
+        {/* Calendar View */}
+        {viewMode === 'calendar' ? (
+          <div className="glass-card border border-border/50 rounded-xl overflow-hidden">
+            {/* Calendar Header */}
+            <div className="bg-card/50 border-b border-border/50 px-6 py-4 flex items-center justify-between">
+              <button
+                onClick={prevMonth}
+                className="p-2 hover:bg-primary/10 rounded-lg transition-all"
+              >
+                <ChevronLeft className="w-5 h-5 text-foreground" />
+              </button>
+              <h3 className="text-xl font-semibold text-foreground">
+                {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+              </h3>
+              <button
+                onClick={nextMonth}
+                className="p-2 hover:bg-primary/10 rounded-lg transition-all"
+              >
+                <ChevronRight className="w-5 h-5 text-foreground" />
+              </button>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="p-6">
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 gap-2 mb-2">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-center text-sm font-semibold text-muted-foreground py-2">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Days */}
+              <div className="grid grid-cols-7 gap-2">
+                {getDaysInMonth(currentDate).map((date, index) => {
+                  const dayEvents = getEventsForDate(date);
+                  return (
+                    <div
+                      key={index}
+                      className={`min-h-[140px] border border-border/50 rounded-lg p-3 ${
+                        date ? 'bg-card hover:border-primary/30 transition-all cursor-pointer' : 'bg-transparent border-transparent'
+                      } ${isToday(date) ? 'border-primary/50 bg-primary/5' : ''}`}
+                      onClick={() => handleDateClick(date, dayEvents)}
+                    >
+                      {date && (
+                        <>
+                          <div className={`text-base font-semibold mb-2 ${
+                            isToday(date) ? 'text-primary font-bold' : 'text-foreground'
+                          }`}>
+                            {date.getDate()}
+                          </div>
+                          <div className="space-y-1.5">
+                            {dayEvents.slice(0, 3).map(event => (
+                              <div
+                                key={event.id}
+                                className={`text-xs px-2 py-1.5 rounded border cursor-pointer hover:opacity-80 transition-all ${getEventTypeColor(event.type)}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditModal(event);
+                                }}
+                                title={event.title}
+                              >
+                                <div className="truncate font-semibold">{event.type}</div>
+                                <div className="truncate text-[11px] opacity-90 mt-0.5">
+                                  {new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                </div>
+                              </div>
+                            ))}
+                            {dayEvents.length > 3 && (
+                              <div className="text-xs text-primary font-medium px-2 py-1 cursor-pointer hover:underline">
+                                +{dayEvents.length - 3} more
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* List View */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.length > 0 ? (
+              events.map((event) => (
+                <div key={event.id} className="glass-card border border-border/50 rounded-xl p-6 hover:border-primary/30 transition-all">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getEventTypeColor(event.type)}`}>
+                          {event.type}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground mb-1">{event.title}</h3>
+                      <p className="text-sm text-muted-foreground mb-3">{event.drive.company.name} - {event.drive.title}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openEditModal(event)}
+                        className="p-2 hover:bg-primary/10 rounded-lg transition-all"
+                      >
+                        <Edit className="w-4 h-4 text-primary" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(event.id, event.title)}
+                        className="p-2 hover:bg-red-500/10 rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {event.description && (
+                    <p className="text-sm text-muted-foreground mb-4">{event.description}</p>
+                  )}
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>
+                        {new Date(event.startTime).toLocaleString()} - {new Date(event.endTime).toLocaleTimeString()}
+                      </span>
+                    </div>
+
+                    {event.venue && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4" />
+                        <span>{event.venue}</span>
+                      </div>
+                    )}
+
+                    {event.meetingLink && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Video className="w-4 h-4 text-primary" />
+                        <a
+                          href={event.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline truncate"
+                        >
+                          Join Meeting
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12">
+                <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <p className="text-muted-foreground">No events scheduled yet</p>
+                <button
+                  onClick={openCreateModal}
+                  className="mt-4 text-primary hover:underline"
+                >
+                  Create your first event
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Create/Edit Modal */}
@@ -458,6 +628,110 @@ export default function AdminEventsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Day Events Modal */}
+      {showDayEvents && selectedDate && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowDayEvents(false)}
+        >
+          <div
+            className="glass-card border border-border/50 rounded-2xl p-8 max-w-3xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-foreground">
+                Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              </h3>
+              <button
+                onClick={() => setShowDayEvents(false)}
+                className="p-2 hover:bg-secondary/50 rounded-lg transition-all"
+              >
+                <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {getEventsForDate(selectedDate).map((event) => (
+                <div
+                  key={event.id}
+                  className="glass-card border border-border/50 rounded-xl p-6 hover:border-primary/30 transition-all"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getEventTypeColor(event.type)}`}>
+                          {event.type}
+                        </span>
+                      </div>
+                      <h4 className="text-lg font-semibold text-foreground mb-1">{event.title}</h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {event.drive.company.name} - {event.drive.title}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setShowDayEvents(false);
+                          openEditModal(event);
+                        }}
+                        className="p-2 hover:bg-primary/10 rounded-lg transition-all"
+                      >
+                        <Edit className="w-4 h-4 text-primary" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowDayEvents(false);
+                          handleDelete(event.id, event.title);
+                        }}
+                        className="p-2 hover:bg-red-500/10 rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {event.description && (
+                    <p className="text-sm text-muted-foreground mb-4">{event.description}</p>
+                  )}
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>
+                        {new Date(event.startTime).toLocaleString()} - {new Date(event.endTime).toLocaleTimeString()}
+                      </span>
+                    </div>
+
+                    {event.venue && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4" />
+                        <span>{event.venue}</span>
+                      </div>
+                    )}
+
+                    {event.meetingLink && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Video className="w-4 h-4 text-primary" />
+                        <a
+                          href={event.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          Join Meeting
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

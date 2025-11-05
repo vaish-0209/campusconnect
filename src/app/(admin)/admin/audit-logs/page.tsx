@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Shield, Search, Filter, Download, Calendar, User, Activity } from "lucide-react";
 
@@ -129,6 +130,9 @@ export default function AdminAuditLogsPage() {
                 <Link href="/admin/drives" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                   Drives
                 </Link>
+                <Link href="/admin/applications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
+                  Applications
+                </Link>
                 <Link href="/admin/events" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                   Events
                 </Link>
@@ -138,11 +142,11 @@ export default function AdminAuditLogsPage() {
               <Link href="/admin/analytics" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                 Analytics
               </Link>
-              <form action="/api/auth/signout" method="POST">
-                <button type="submit" className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
+              
+                <button onClick={() => signOut({ callbackUrl: "/login" })}  className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
                   Logout
                 </button>
-              </form>
+              
             </div>
           </div>
         </div>

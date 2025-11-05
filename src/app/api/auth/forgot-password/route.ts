@@ -64,10 +64,8 @@ export async function POST(req: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        // We'll need to add these fields to the schema
-        // For now, we'll use inviteToken and inviteSentAt as temporary storage
-        inviteToken: hashedToken,
-        inviteSentAt: resetTokenExpiry,
+        resetToken: hashedToken,
+        resetTokenExpiry: resetTokenExpiry,
       },
     });
 

@@ -14,28 +14,66 @@ export async function GET(req: NextRequest) {
     }
 
     const searchParams = req.nextUrl.searchParams;
-    const search = searchParams.get("search") || "";
-    const companyId = searchParams.get("companyId") || "";
+    const search = searchParams.get("search");
+    const companyId = searchParams.get("companyId");
+    const companyName = searchParams.get("company");
     const isActive = searchParams.get("isActive");
+    const activeFilter = searchParams.get("active");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
-    const where: any = {
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: "insensitive" as const } },
-          { role: { contains: search, mode: "insensitive" as const } },
-          {
-            company: {
-              name: { contains: search, mode: "insensitive" as const },
-            },
+    console.log("🔍 Drive API Query Params:", { search, companyId, companyName, isActive, activeFilter, page, limit });
+
+    const where: any = {};
+    const conditions: any[] = [];
+
+    // Add company filter by ID
+    if (companyId) {
+      conditions.push({ companyId });
+    }
+
+    // Add company filter by name
+    if (companyName) {
+      conditions.push({
+        company: {
+          name: companyName,
+        },
+      });
+    }
+
+    // Add search filter
+    if (search) {
+      const searchConditions = [
+        { title: { contains: search } },
+        { role: { contains: search } },
+      ];
+
+      // Only add company name search if not already filtering by company
+      if (!companyName && !companyId) {
+        searchConditions.push({
+          company: {
+            name: { contains: search },
           },
-        ],
-      }),
-      ...(companyId && { companyId }),
-      ...(isActive !== null && { isActive: isActive === "true" }),
-    };
+        });
+      }
+
+      conditions.push({ OR: searchConditions });
+    }
+
+    // Add active status filter
+    if (isActive !== null && isActive !== undefined) {
+      conditions.push({ isActive: isActive === "true" });
+    } else if (activeFilter && activeFilter !== "all") {
+      conditions.push({ isActive: activeFilter === "true" });
+    }
+
+    // Combine all conditions with AND
+    if (conditions.length > 0) {
+      where.AND = conditions;
+    }
+
+    console.log("📊 Prisma WHERE clause:", JSON.stringify(where, null, 2));
 
     const [drives, total] = await Promise.all([
       prisma.drive.findMany({

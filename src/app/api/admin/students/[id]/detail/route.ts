@@ -42,6 +42,15 @@ export async function GET(
           orderBy: {
             appliedAt: "desc"
           }
+        },
+        documents: {
+          where: {
+            type: "RESUME"
+          },
+          orderBy: {
+            uploadedAt: "desc"
+          },
+          take: 1
         }
       }
     });
@@ -63,12 +72,16 @@ export async function GET(
       cgpa: student.cgpa,
       backlogs: student.backlogs,
       phone: student.phone,
+      profilePhoto: student.profilePhoto,
+      skills: student.skills,
       isActive: student.user.isActive,
       lastLoginAt: student.user.lastLoginAt,
+      resume: student.documents[0] || null,
       applications: student.applications.map(app => ({
         id: app.id,
         status: app.status,
         appliedAt: app.appliedAt,
+        resumeUrl: app.resumeUrl,
         drive: {
           id: app.drive.id,
           title: app.drive.title,

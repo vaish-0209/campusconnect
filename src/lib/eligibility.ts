@@ -25,14 +25,20 @@ export function checkEligibility(
     );
   }
 
-  // Check branch
-  if (
-    drive.allowedBranches.length > 0 &&
-    !drive.allowedBranches.includes(student.branch)
-  ) {
-    reasons.push(
-      `Branch not allowed (only ${drive.allowedBranches.join(", ")} allowed)`
-    );
+  // Check branch - allowedBranches is a string, convert to array
+  if (drive.allowedBranches) {
+    const allowedBranchesArray = typeof drive.allowedBranches === 'string'
+      ? drive.allowedBranches.split(',').map(b => b.trim())
+      : drive.allowedBranches;
+
+    if (
+      allowedBranchesArray.length > 0 &&
+      !allowedBranchesArray.includes(student.branch)
+    ) {
+      reasons.push(
+        `Branch not allowed (only ${allowedBranchesArray.join(", ")} allowed)`
+      );
+    }
   }
 
   return {

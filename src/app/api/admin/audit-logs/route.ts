@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       ...(target && { target }),
       ...(targetId && { targetId }),
       ...(userEmail && {
-        userEmail: { contains: userEmail, mode: "insensitive" as const },
+        userEmail: { contains: userEmail },
       }),
       ...(startDate && {
         createdAt: { gte: new Date(startDate) },

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { ArrowLeft, Building2, MapPin, DollarSign, Calendar, Users, Upload, Download, FileText, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, Award, Calendar, Users, Upload, Download, FileText, CheckCircle, XCircle, GraduationCap } from "lucide-react";
 
 interface Drive {
   id: string;
@@ -159,118 +159,202 @@ export default function DriveDetailPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
-        {/* Drive Header */}
+        {/* Company Header */}
         <div className="glass-card border border-border/50 rounded-xl p-8 mb-6">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-4">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-4">
               {drive.company.logo ? (
-                <img
-                  src={drive.company.logo}
-                  alt={drive.company.name}
-                  className="w-16 h-16 rounded"
-                />
+                <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center bg-card">
+                  <img
+                    src={drive.company.logo}
+                    alt={drive.company.name}
+                    className="w-full h-full object-contain p-2"
+                  />
+                </div>
               ) : (
-                <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
-                  <span className="text-2xl font-bold text-primary">{drive.company.name[0]}</span>
+                <div className="w-20 h-20 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                  <span className="text-3xl font-bold text-primary">{drive.company.name[0]}</span>
                 </div>
               )}
               <div>
-                <h1 className="text-3xl font-bold text-foreground">
+                <h1 className="text-3xl font-bold text-foreground mb-1">
                   {drive.company.name}
                 </h1>
-                <p className="text-xl text-muted-foreground mt-1">{drive.title}</p>
-                <div className="flex items-center space-x-4 mt-2">
-                  <span className="text-sm text-muted-foreground">{drive.role}</span>
-                  {drive.ctc && (
-                    <span className="text-sm font-semibold text-green-600">
-                      ₹{drive.ctc} LPA
-                    </span>
-                  )}
-                  {drive.location && (
-                    <span className="text-sm text-gray-600">
-                      📍 {drive.location}
-                    </span>
-                  )}
-                </div>
+                {drive.location && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {drive.location}
+                  </p>
+                )}
               </div>
             </div>
             <span
-              className={`px-3 py-1 text-sm rounded-full border ${
+              className={`px-4 py-2 text-sm font-medium rounded-full border ${
                 drive.isActive
                   ? "bg-green-500/10 text-green-400 border-green-500/20"
                   : "bg-muted/10 text-muted-foreground border-muted/20"
               }`}
             >
-              {drive.isActive ? "Active" : "Inactive"}
+              {drive.isActive ? "● Active" : "○ Inactive"}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">
+          {/* Role & Title */}
+          <div className="border-t border-border/50 pt-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-medium">
+                {drive.role}
+              </span>
+              {drive.ctc && drive.ctc <= 6 && (
+                <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-medium">
+                  Service Based
+                </span>
+              )}
+              {drive.ctc && drive.ctc > 6 && drive.ctc <= 12 && (
+                <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full text-xs font-medium">
+                  Product Based
+                </span>
+              )}
+              {drive.ctc && drive.ctc > 12 && (
+                <span className="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-xs font-medium">
+                  Premium
+                </span>
+              )}
+              {drive.role.toLowerCase().includes('intern') && (
+                <span className="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full text-xs font-medium">
+                  Internship
+                </span>
+              )}
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">{drive.title}</h2>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Left Column - Main Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Job Description */}
+            <div className="glass-card border border-border/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary" />
                 Job Description
               </h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                 {drive.jobDescription}
               </p>
             </div>
-            <div className="space-y-4">
-              {drive.ctcBreakup && (
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">
-                    CTC Breakup
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{drive.ctcBreakup}</p>
-                </div>
-              )}
-              {drive.bond && (
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">
-                    Bond Details
-                  </h3>
-                  <p className="text-sm text-gray-600">{drive.bond}</p>
-                </div>
-              )}
-              {drive.techStack.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">
-                    Tech Stack
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {drive.techStack.map((tech, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-1 bg-primary/10 text-primary border border-primary/20 text-xs rounded-full"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">
-                  Eligibility
+
+            {/* Tech Stack */}
+            {drive.techStack.length > 0 && (
+              <div className="glass-card border border-border/50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Tech Stack Required
                 </h3>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  {drive.minCgpa && <div>Min CGPA: {drive.minCgpa}</div>}
-                  <div>Max Backlogs: {drive.maxBacklogs}</div>
-                  {drive.allowedBranches.length > 0 && (
-                    <div>Branches: {drive.allowedBranches.join(", ")}</div>
-                  )}
+                <div className="flex flex-wrap gap-2">
+                  {drive.techStack.map((tech, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-2 bg-primary/10 text-primary border border-primary/20 text-sm rounded-lg font-medium"
+                    >
+                      {tech}
+                    </span>
+                  ))}
                 </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">
-                  Registration Period
-                </h3>
-                <div className="text-sm text-gray-600">
-                  <div>
-                    Start: {new Date(drive.registrationStart).toLocaleString()}
+            )}
+          </div>
+
+          {/* Right Column - Details */}
+          <div className="space-y-6">
+            {/* CTC & Package */}
+            <div className="glass-card border border-border/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Award className="w-5 h-5 text-primary" />
+                Package Details
+              </h3>
+              <div className="space-y-3">
+                {drive.ctc && (
+                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Total CTC</p>
+                    <p className="text-2xl font-bold text-primary">₹{drive.ctc} LPA</p>
                   </div>
+                )}
+                {drive.ctcBreakup && (
                   <div>
-                    End: {new Date(drive.registrationEnd).toLocaleString()}
+                    <p className="text-xs text-muted-foreground mb-2">Breakup</p>
+                    <p className="text-sm text-foreground">{drive.ctcBreakup}</p>
                   </div>
+                )}
+                {drive.bond && (
+                  <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+                    <p className="text-xs text-amber-600/80 mb-1">Service Bond</p>
+                    <p className="text-sm text-foreground">{drive.bond}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Eligibility Criteria */}
+            <div className="glass-card border border-border/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-primary" />
+                Eligibility Criteria
+              </h3>
+              <div className="space-y-3">
+                {drive.minCgpa && (
+                  <div className="flex items-center justify-between p-3 bg-card/50 rounded-lg">
+                    <span className="text-sm text-muted-foreground">Minimum CGPA</span>
+                    <span className="text-sm font-semibold text-foreground">{drive.minCgpa}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between p-3 bg-card/50 rounded-lg">
+                  <span className="text-sm text-muted-foreground">Max Backlogs</span>
+                  <span className="text-sm font-semibold text-foreground">{drive.maxBacklogs}</span>
+                </div>
+                {drive.allowedBranches.length > 0 && (
+                  <div className="p-3 bg-card/50 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-2">Allowed Branches</p>
+                    <div className="flex flex-wrap gap-1">
+                      {drive.allowedBranches.map((branch, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-primary/10 text-primary border border-primary/20 text-xs rounded"
+                        >
+                          {branch}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Registration Period */}
+            <div className="glass-card border border-border/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-primary" />
+                Registration Period
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Starts</p>
+                  <p className="text-sm text-foreground font-medium">
+                    {new Date(drive.registrationStart).toLocaleString('en-IN', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short'
+                    })}
+                  </p>
+                </div>
+                <div className="h-px bg-border/50" />
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Ends</p>
+                  <p className="text-sm text-foreground font-medium">
+                    {new Date(drive.registrationEnd).toLocaleString('en-IN', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short'
+                    })}
+                  </p>
                 </div>
               </div>
             </div>

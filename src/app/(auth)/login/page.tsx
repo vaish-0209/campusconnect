@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -13,6 +13,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,14 +119,25 @@ function LoginForm() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-11 pr-4 py-3 bg-secondary/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full pl-11 pr-12 py-3 bg-secondary/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   placeholder="••••••••"
                   autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -153,37 +165,22 @@ function LoginForm() {
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="px-2 bg-card text-muted-foreground">
-                First time here?
+                Need help?
               </span>
             </div>
           </div>
 
-          {/* Setup Link */}
-          <Link
-            href="/setup-password"
-            className="block w-full py-3 px-4 bg-secondary/50 hover:bg-secondary border border-border rounded-lg font-medium text-center transition-all group"
-          >
-            Setup your account
-            <ArrowRight className="inline-block w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          {/* Help Text */}
+          <div className="text-center p-4 bg-secondary/30 rounded-lg border border-border/30">
+            <p className="text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">New student?</span> Check your college email for account setup link
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Having trouble? Contact <span className="text-primary">placement@bmsce.ac.in</span>
+            </p>
+          </div>
         </div>
 
-        {/* Test Credentials (Development only) */}
-        {process.env.NODE_ENV === "development" && (
-          <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-xs font-semibold text-muted-foreground mb-2">
-              Test Credentials:
-            </p>
-            <div className="space-y-1 text-xs text-muted-foreground">
-              <p>
-                <span className="font-medium">Admin:</span> admin@bmsce.ac.in / admin123
-              </p>
-              <p>
-                <span className="font-medium">Student:</span> student@test.com / student123
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

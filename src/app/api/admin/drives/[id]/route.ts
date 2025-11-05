@@ -36,13 +36,26 @@ export async function GET(
       return NextResponse.json({ error: "Drive not found" }, { status: 404 });
     }
 
+    // Parse techStack and allowedBranches from strings to arrays
+    const techStack = drive.techStack
+      ? (typeof drive.techStack === 'string' ? drive.techStack.split(',').map(t => t.trim()) : drive.techStack)
+      : [];
+
+    const allowedBranches = drive.allowedBranches
+      ? (typeof drive.allowedBranches === 'string' ? drive.allowedBranches.split(',').map(b => b.trim()) : drive.allowedBranches)
+      : [];
+
     return NextResponse.json({
-      ...drive,
-      applicationsCount: drive.applications.length,
-      shortlistedCount: drive.applications.filter((a) =>
-        ["SHORTLISTED", "TEST_CLEARED", "INTERVIEW_CLEARED"].includes(a.status)
-      ).length,
-      offersCount: drive.applications.filter((a) => a.status === "OFFER").length,
+      drive: {
+        ...drive,
+        techStack,
+        allowedBranches,
+        applicationsCount: drive.applications.length,
+        shortlistedCount: drive.applications.filter((a) =>
+          ["SHORTLISTED", "TEST_CLEARED", "INTERVIEW_CLEARED"].includes(a.status)
+        ).length,
+        offersCount: drive.applications.filter((a) => a.status === "OFFER").length,
+      }
     });
   } catch (error) {
     console.error("Error fetching drive:", error);

@@ -6,10 +6,17 @@ import { z } from "zod";
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
-  logo: z.string().url().optional(),
+  logo: z.string().url().optional().or(z.literal("")),
   sector: z.string().min(1).optional(),
-  tier: z.string().optional(),
-  website: z.string().url().optional(),
+  website: z.string().url().optional().or(z.literal("")),
+  description: z.string().optional(),
+  packageRange: z.string().optional(),
+  eligibilityMinCGPA: z.number().min(0).max(10).optional(),
+  eligibilityMaxBacklogs: z.number().min(0).optional(),
+  eligibilityBranches: z.string().optional(),
+  hrContactName: z.string().optional(),
+  hrContactEmail: z.string().email().optional().or(z.literal("")),
+  hrContactPhone: z.string().optional(),
 });
 
 export async function PATCH(

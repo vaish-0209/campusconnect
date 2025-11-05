@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { StatCard } from "@/components/ui/stat-card";
@@ -84,6 +84,9 @@ export default function AdminDashboard() {
                 <Link href="/admin/drives" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                   Drives
                 </Link>
+                <Link href="/admin/applications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
+                  Applications
+                </Link>
                 <Link href="/admin/events" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                   Events
                 </Link>
@@ -94,14 +97,12 @@ export default function AdminDashboard() {
                 Analytics
               </Link>
               <span className="text-sm text-muted-foreground">{session?.user?.name}</span>
-              <form action="/api/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all"
-                >
-                  Logout
-                </button>
-              </form>
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>

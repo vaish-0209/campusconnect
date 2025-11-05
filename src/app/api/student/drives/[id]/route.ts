@@ -6,15 +6,17 @@ import { checkEligibility } from "@/lib/eligibility";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "STUDENT") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get student profile
     const student = await prisma.student.findUnique({
       where: { userId: session.user.id },
     });
@@ -26,13 +28,11 @@ export async function GET(
       );
     }
 
+    // Get drive details
     const drive = await prisma.drive.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         company: true,
-        events: {
-          orderBy: { startTime: "asc" },
-        },
         applications: {
           where: { studentId: student.id },
         },
@@ -43,18 +43,16 @@ export async function GET(
       return NextResponse.json({ error: "Drive not found" }, { status: 404 });
     }
 
+    // Check eligibility
     const eligibility = checkEligibility(student, drive);
-    const application = drive.applications[0] || null;
+    const hasApplied = drive.applications.length > 0;
 
-    return NextResponse.json({
+    const driveDetails = {
       id: drive.id,
       company: {
-        id: drive.company.id,
         name: drive.company.name,
         logo: drive.company.logo,
         sector: drive.company.sector,
-        tier: drive.company.tier,
-        website: drive.company.website,
       },
       title: drive.title,
       role: drive.role,
@@ -64,34 +62,23 @@ export async function GET(
       location: drive.location,
       bond: drive.bond,
       techStack: drive.techStack,
+      positionsAvailable: drive.positionsAvailable,
       minCgpa: drive.minCgpa,
       maxBacklogs: drive.maxBacklogs,
-      allowedBranches: drive.allowedBranches,
+      allowedBranches: drive.allowedBranches
+        ? drive.allowedBranches.split(',').map(b => b.trim())
+        : [],
       registrationStart: drive.registrationStart,
       registrationEnd: drive.registrationEnd,
-      events: drive.events.map((event) => ({
-        id: event.id,
-        title: event.title,
-        type: event.type,
-        startTime: event.startTime,
-        endTime: event.endTime,
-        venue: event.venue,
-        meetingLink: event.meetingLink,
-      })),
-      eligibility: {
-        isEligible: eligibility.isEligible,
-        reasons: eligibility.reasons,
-      },
-      application: application
-        ? {
-            id: application.id,
-            status: application.status,
-            appliedAt: application.appliedAt,
-          }
-        : null,
-    });
+      isActive: drive.isActive,
+      isEligible: eligibility.isEligible,
+      hasApplied,
+      applicationStatus: hasApplied ? drive.applications[0].status : undefined,
+    };
+
+    return NextResponse.json(driveDetails);
   } catch (error) {
-    console.error("Error fetching drive:", error);
+    console.error("Error fetching drive details:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

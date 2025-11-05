@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Bell, Check, CheckCheck, Trash2, AlertCircle, Info, Zap } from "lucide-react";
+import { StudentNavbar } from "@/components/student/StudentNavbar";
 
 interface Notification {
   id: string;
@@ -110,40 +111,7 @@ export default function StudentNotificationsPage() {
       {/* Animated gradient orbs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
 
-      {/* Navbar */}
-      <nav className="glass-card border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-8">
-              <h1 className="text-xl font-semibold text-foreground tracking-wide">
-                Campus<span className="text-primary">Connect</span>
-              </h1>
-              <div className="hidden md:flex items-center gap-2">
-                <Link href="/student/dashboard" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Dashboard
-                </Link>
-                <Link href="/student/drives" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Drives
-                </Link>
-                <Link href="/student/companies" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Companies
-                </Link>
-                <Link href="/student/applications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Applications
-                </Link>
-                <Link href="/student/calendar" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
-                  Calendar
-                </Link>
-              </div>
-            </div>
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </nav>
+      <StudentNavbar />
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-12 relative z-10">

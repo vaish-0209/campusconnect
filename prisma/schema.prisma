@@ -60,22 +60,25 @@ enum AuditAction {
 // ==================== CORE MODELS ====================
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  password      String?
-  role          Role           @default(STUDENT)
-  isActive      Boolean        @default(false)
-  inviteToken   String?        @unique
-  inviteSentAt  DateTime?
-  lastLoginAt   DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                String         @id @default(cuid())
+  email             String         @unique
+  password          String?
+  role              Role           @default(STUDENT)
+  isActive          Boolean        @default(false)
+  inviteToken       String?        @unique
+  inviteSentAt      DateTime?
+  resetToken        String?        @unique
+  resetTokenExpiry  DateTime?
+  lastLoginAt       DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   student       Student?
   notifications Notification[]
 
   @@index([email])
   @@index([inviteToken])
+  @@index([resetToken])
 }
 
 model Student {
@@ -89,6 +92,8 @@ model Student {
   backlogs      Int           @default(0)
   phone         String?
   profilePhoto  String?
+  profileImage  String?
+  resume        String?
   skills        String?
   github        String?
   linkedin      String?
@@ -107,12 +112,23 @@ model Student {
 }
 
 model Company {
-  id            String   @id @default(cuid())
-  name          String   @unique
-  logo          String?
-  sector        String
-  tier          String?
-  website       String?
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  logo                  String?
+  sector                String
+  website               String?
+  description           String?
+  packageRange          String?
+
+  // Eligibility criteria
+  eligibilityMinCGPA    Float?
+  eligibilityMaxBacklogs Int?
+  eligibilityBranches   String?
+
+  // HR Contact
+  hrContactName         String?
+  hrContactEmail        String?
+  hrContactPhone        String?
 
   drives        Drive[]
 
@@ -134,6 +150,7 @@ model Drive {
   location          String?
   bond              String?
   techStack         String?
+  positionsAvailable Int?
 
   minCgpa           Float?
   maxBacklogs       Int       @default(0)

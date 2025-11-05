@@ -60,7 +60,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { phone, skills, github, linkedin, portfolio } = body;
+    const { phone, skills, github, linkedin, portfolio, profileImage, resume } = body;
 
     const updatedStudent = await prisma.student.update({
       where: { id: student.id },
@@ -70,6 +70,8 @@ export async function PATCH(req: Request) {
         ...(github !== undefined && { github }),
         ...(linkedin !== undefined && { linkedin }),
         ...(portfolio !== undefined && { portfolio }),
+        ...(profileImage !== undefined && { profileImage }),
+        ...(resume !== undefined && { resume }),
       },
     });
 

@@ -1,8 +1,24 @@
-# 🚀 Deployment Guide - CampusConnect
+# 🚀 Deployment Guide - College Placement Portal
 
 Deploy your placement portal to production using Vercel (hosting) and Neon (PostgreSQL database).
 
 **Estimated Time:** 20-30 minutes
+
+---
+
+## 📋 Pre-Deployment Checklist
+
+Before deploying, ensure you have:
+
+- ✅ PostgreSQL database (Neon) - Already configured
+- ✅ Cloudinary account - Already configured
+- ✅ Upstash Redis - Already configured
+- ✅ Resend API key - Already configured
+- ✅ Sentry project (optional)
+- ✅ GitHub account
+- ✅ Vercel account
+
+---
 
 ---
 

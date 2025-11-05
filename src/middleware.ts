@@ -5,6 +5,15 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip rate limiting for static files and internal Next.js routes
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    pathname.includes('.') // Files with extensions (css, js, images, etc.)
+  ) {
+    return NextResponse.next();
+  }
+
   // CORS handling
   if (request.method === "OPTIONS") {
     return handleCORS(request);
@@ -13,6 +22,59 @@ export async function middleware(request: NextRequest) {
   // Add security headers
   const response = NextResponse.next();
   addSecurityHeaders(response);
+
+  // Apply rate limiting to API routes
+  if (pathname.startsWith('/api')) {
+    // Skip rate limiting if Redis is not configured (development mode)
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      try {
+        const { ratelimit, authRatelimit, uploadRatelimit } = await import('./lib/ratelimit');
+
+        // Get IP address
+        const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'anonymous';
+
+        let limiter = ratelimit;
+
+        // Apply stricter rate limits for auth endpoints
+        if (pathname.startsWith('/api/auth') && !pathname.includes('/api/auth/session')) {
+          limiter = authRatelimit;
+        }
+        // Apply upload rate limits
+        else if (pathname.startsWith('/api/upload')) {
+          limiter = uploadRatelimit;
+        }
+
+        // Check rate limit
+        const { success, limit, remaining, reset } = await limiter.limit(ip);
+
+        if (!success) {
+          const errorResponse = NextResponse.json(
+            {
+              error: 'Too many requests',
+              message: 'Please try again later',
+              retryAfter: Math.ceil((reset - Date.now()) / 1000)
+            },
+            { status: 429 }
+          );
+
+          errorResponse.headers.set('X-RateLimit-Limit', limit.toString());
+          errorResponse.headers.set('X-RateLimit-Remaining', '0');
+          errorResponse.headers.set('X-RateLimit-Reset', reset.toString());
+          errorResponse.headers.set('Retry-After', Math.ceil((reset - Date.now()) / 1000).toString());
+
+          return errorResponse;
+        }
+
+        // Add rate limit headers to successful response
+        response.headers.set('X-RateLimit-Limit', limit.toString());
+        response.headers.set('X-RateLimit-Remaining', remaining.toString());
+        response.headers.set('X-RateLimit-Reset', reset.toString());
+      } catch (error) {
+        console.error('Rate limiting error:', error);
+        // If rate limiting fails, allow the request to proceed
+      }
+    }
+  }
 
   // Protect admin routes
   if (pathname.startsWith("/api/admin")) {
@@ -90,8 +152,12 @@ function addSecurityHeaders(response: NextResponse) {
 
 export const config = {
   matcher: [
-    // Only match admin and student API routes for auth protection
-    "/api/admin/:path*",
-    "/api/student/:path*",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

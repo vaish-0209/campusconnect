@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Plus, Search, Filter, Zap, Calendar, Users } from "lucide-react";
 
@@ -25,29 +27,50 @@ interface Drive {
 }
 
 export default function AdminDrivesPage() {
+  const searchParams = useSearchParams();
+  const companyFromUrl = searchParams.get("company") || "";
+
   const [drives, setDrives] = useState<Drive[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [companyFilter, setCompanyFilter] = useState(companyFromUrl);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 20;
 
+  // Sync companyFilter with URL parameter
   useEffect(() => {
+    console.log("🎯 Company from URL:", companyFromUrl);
+    if (companyFromUrl !== companyFilter) {
+      console.log("✅ Updating companyFilter to:", companyFromUrl);
+      setCompanyFilter(companyFromUrl);
+    }
+  }, [companyFromUrl]);
+
+  useEffect(() => {
+    console.log("🔄 useEffect triggered - companyFilter:", companyFilter);
     fetchDrives();
-  }, [search, statusFilter, page]);
+  }, [search, statusFilter, companyFilter, page]);
 
   const fetchDrives = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        search,
         page: page.toString(),
         limit: limit.toString(),
-        ...(statusFilter !== "all" && { active: statusFilter }),
       });
 
-      const response = await fetch(`/api/admin/drives?${params}`);
+      if (search) params.append("search", search);
+      if (statusFilter !== "all") params.append("active", statusFilter);
+      if (companyFilter) params.append("company", companyFilter);
+
+      const url = `/api/admin/drives?${params}`;
+      console.log("🌐 Fetching drives with URL:", url);
+      console.log("📋 Current companyFilter state:", companyFilter);
+      console.log("🔗 Full params object:", Object.fromEntries(params.entries()));
+
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setDrives(data.drives);
@@ -109,6 +132,9 @@ export default function AdminDrivesPage() {
                 <Link href="/admin/drives" className="px-4 py-2 text-sm font-medium text-foreground bg-primary/10 border border-primary/20 rounded-full transition-all">
                   Drives
                 </Link>
+                <Link href="/admin/applications" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
+                  Applications
+                </Link>
                 <Link href="/admin/events" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                   Events
                 </Link>
@@ -118,11 +144,11 @@ export default function AdminDrivesPage() {
               <Link href="/admin/analytics" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                 Analytics
               </Link>
-              <form action="/api/auth/signout" method="POST">
-                <button type="submit" className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
+              
+                <button onClick={() => signOut({ callbackUrl: "/login" })}  className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
                   Logout
                 </button>
-              </form>
+              
             </div>
           </div>
         </div>
@@ -147,6 +173,22 @@ export default function AdminDrivesPage() {
             Create Drive
           </Link>
         </div>
+
+        {/* Company Filter Badge */}
+        {companyFilter && (
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Filtering by:</span>
+            <span className="px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-sm font-medium flex items-center gap-2">
+              {companyFilter}
+              <button
+                onClick={() => setCompanyFilter("")}
+                className="hover:text-primary/80"
+              >
+                ×
+              </button>
+            </span>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="glass-card border border-border/50 rounded-xl p-6 mb-8">
@@ -222,13 +264,7 @@ export default function AdminDrivesPage() {
                       CTC
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Eligibility
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Registration
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Applications
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Status
@@ -280,27 +316,16 @@ export default function AdminDrivesPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {drive.ctc ? `₹${drive.ctc} LPA` : "N/A"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-xs text-muted-foreground">
-                          <div className="space-y-1">
-                            {drive.minCgpa && (
-                              <div>CGPA: {drive.minCgpa}+</div>
-                            )}
-                            <div>Backlogs: {drive.maxBacklogs}</div>
-                            {branches.length > 0 && (
-                              <div className="text-primary">{branches.join(", ")}</div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-xs text-muted-foreground">
-                          <div className="space-y-1">
-                            <div>
-                              Start: {new Date(drive.registrationStart).toLocaleDateString()}
+                        <td className="px-4 py-4 text-xs text-muted-foreground">
+                          <div className="space-y-1 w-32">
+                            <div className="whitespace-nowrap">
+                              Start: {new Date(drive.registrationStart).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                             </div>
-                            <div>
-                              End: {new Date(drive.registrationEnd).toLocaleDateString()}
+                            <div className="whitespace-nowrap">
+                              End: {new Date(drive.registrationEnd).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                             </div>
                             {isOpen && (
-                              <span className="px-2 py-1 text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full">
+                              <span className="inline-block px-2 py-1 text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full">
                                 Open Now
                               </span>
                             )}
@@ -308,11 +333,6 @@ export default function AdminDrivesPage() {
                               <span className="text-muted-foreground/60">Closed</span>
                             )}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                          <span className="font-semibold">
-                            {drive.applicationsCount}
-                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button

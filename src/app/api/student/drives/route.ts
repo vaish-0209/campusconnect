@@ -81,15 +81,24 @@ export async function GET(req: NextRequest) {
         },
         title: drive.title,
         role: drive.role,
+        jobDescription: drive.jobDescription,
         ctc: drive.ctc,
+        ctcBreakup: drive.ctcBreakup,
         location: drive.location,
+        bond: drive.bond,
+        techStack: drive.techStack,
+        positionsAvailable: drive.positionsAvailable,
         minCgpa: drive.minCgpa,
         maxBacklogs: drive.maxBacklogs,
-        allowedBranches: drive.allowedBranches,
+        allowedBranches: drive.allowedBranches
+          ? drive.allowedBranches.split(',').map(b => b.trim())
+          : [],
         registrationStart: drive.registrationStart,
         registrationEnd: drive.registrationEnd,
+        isActive: drive.isActive,
         isEligible: eligibility.isEligible,
         hasApplied,
+        applicationStatus: hasApplied ? drive.applications[0].status : undefined,
       };
     });
 

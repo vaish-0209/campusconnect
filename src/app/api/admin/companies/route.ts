@@ -16,38 +16,67 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const sector = searchParams.get("sector") || "";
 
-    const where: any = {
-      ...(search && {
-        OR: [
-          { name: { contains: search, mode: "insensitive" as const } },
-          { sector: { contains: search, mode: "insensitive" as const } },
-        ],
-      }),
-      ...(sector && { sector }),
-    };
+    const where: any = {};
+
+    // Add search filter
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { sector: { contains: search } },
+      ];
+    }
+
+    // Add sector filter
+    if (sector) {
+      where.sector = sector;
+    }
 
     const companies = await prisma.company.findMany({
       where,
       include: {
         drives: {
-          select: { id: true },
+          select: {
+            id: true,
+            applications: {
+              select: {
+                id: true,
+                status: true,
+              }
+            }
+          },
         },
       },
       orderBy: { name: "asc" },
     });
 
-    const companiesWithCount = companies.map((company) => ({
-      id: company.id,
-      name: company.name,
-      logo: company.logo,
-      sector: company.sector,
-      tier: company.tier,
-      website: company.website,
-      drivesCount: company.drives.length,
-      createdAt: company.createdAt,
-    }));
+    const companiesWithStats = companies.map((company) => {
+      const totalApplications = company.drives.reduce((sum, drive) => sum + drive.applications.length, 0);
+      const totalOffers = company.drives.reduce((sum, drive) =>
+        sum + drive.applications.filter(app => app.status === "OFFER").length, 0
+      );
 
-    return NextResponse.json({ companies: companiesWithCount });
+      return {
+        id: company.id,
+        name: company.name,
+        logo: company.logo,
+        sector: company.sector,
+        website: company.website,
+        description: company.description,
+        packageRange: company.packageRange,
+        eligibilityMinCGPA: company.eligibilityMinCGPA,
+        eligibilityMaxBacklogs: company.eligibilityMaxBacklogs,
+        eligibilityBranches: company.eligibilityBranches,
+        hrContactName: company.hrContactName,
+        hrContactEmail: company.hrContactEmail,
+        hrContactPhone: company.hrContactPhone,
+        drivesCount: company.drives.length,
+        totalApplications,
+        totalOffers,
+        createdAt: company.createdAt,
+      };
+    });
+
+    return NextResponse.json({ companies: companiesWithStats });
   } catch (error) {
     console.error("Error fetching companies:", error);
     return NextResponse.json(
@@ -59,10 +88,17 @@ export async function GET(req: NextRequest) {
 
 const createSchema = z.object({
   name: z.string().min(1, "Company name is required"),
-  logo: z.string().url().optional(),
+  logo: z.string().url().optional().or(z.literal("")),
   sector: z.string().min(1, "Sector is required"),
-  tier: z.string().optional(),
-  website: z.string().url().optional(),
+  website: z.string().url().optional().or(z.literal("")),
+  description: z.string().optional(),
+  packageRange: z.string().optional(),
+  eligibilityMinCGPA: z.number().min(0).max(10).optional(),
+  eligibilityMaxBacklogs: z.number().min(0).optional(),
+  eligibilityBranches: z.string().optional(),
+  hrContactName: z.string().optional(),
+  hrContactEmail: z.string().email().optional().or(z.literal("")),
+  hrContactPhone: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -91,10 +127,17 @@ export async function POST(req: NextRequest) {
     const company = await prisma.company.create({
       data: {
         name: data.name,
-        logo: data.logo,
+        logo: data.logo || null,
         sector: data.sector,
-        tier: data.tier,
-        website: data.website,
+        website: data.website || null,
+        description: data.description,
+        packageRange: data.packageRange,
+        eligibilityMinCGPA: data.eligibilityMinCGPA,
+        eligibilityMaxBacklogs: data.eligibilityMaxBacklogs,
+        eligibilityBranches: data.eligibilityBranches,
+        hrContactName: data.hrContactName,
+        hrContactEmail: data.hrContactEmail || null,
+        hrContactPhone: data.hrContactPhone,
       },
     });
 

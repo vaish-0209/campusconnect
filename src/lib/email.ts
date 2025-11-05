@@ -18,8 +18,15 @@ interface SendEmailOptions {
  */
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
   if (!process.env.RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY not configured. Email would have been sent to:", to);
+    console.log("\n========================================");
+    console.log("📧 EMAIL SIMULATION (RESEND_API_KEY not configured)");
+    console.log("========================================");
+    console.log("To:", to);
     console.log("Subject:", subject);
+    console.log("----------------------------------------");
+    console.log("HTML Preview (first 500 chars):");
+    console.log(html.substring(0, 500) + "...");
+    console.log("========================================\n");
     return { success: false, error: "Email service not configured" };
   }
 
@@ -256,6 +263,93 @@ export async function sendDriveAnnouncementEmail({
   return sendEmail({
     to,
     subject: `New Drive: ${companyName} - ${driveTitle}`,
+    html,
+  });
+}
+
+/**
+ * Send application status update email
+ */
+export async function sendApplicationStatusEmail({
+  to,
+  studentName,
+  companyName,
+  role,
+  status,
+  remarks,
+}: {
+  to: string;
+  studentName: string;
+  companyName: string;
+  role: string;
+  status: string;
+  remarks?: string;
+}) {
+  const statusColors: Record<string, string> = {
+    APPLIED: "#3b82f6",
+    SHORTLISTED: "#8b5cf6",
+    TEST_CLEARED: "#06b6d4",
+    INTERVIEW_CLEARED: "#10b981",
+    OFFER: "#059669",
+    REJECTED: "#ef4444",
+  };
+
+  const statusEmojis: Record<string, string> = {
+    APPLIED: "📝",
+    SHORTLISTED: "✨",
+    TEST_CLEARED: "✅",
+    INTERVIEW_CLEARED: "🎯",
+    OFFER: "🎉",
+    REJECTED: "❌",
+  };
+
+  const statusColor = statusColors[status] || "#2563eb";
+  const statusEmoji = statusEmojis[status] || "📢";
+  const formattedStatus = status.replace(/_/g, " ");
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: ${statusColor}; color: white; padding: 20px; text-align: center; }
+          .content { padding: 30px 20px; background: #f9fafb; }
+          .status-box { background: white; padding: 20px; border-left: 4px solid ${statusColor}; margin: 20px 0; border-radius: 5px; }
+          .button { display: inline-block; padding: 12px 30px; background: ${statusColor}; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${statusEmoji} Application Status Updated</h1>
+          </div>
+          <div class="content">
+            <p>Hi ${studentName},</p>
+            <p>Great news! Your application status has been updated.</p>
+            <div class="status-box">
+              <h2>${companyName}</h2>
+              <p><strong>Role:</strong> ${role}</p>
+              <p><strong>New Status:</strong> ${formattedStatus}</p>
+              ${remarks ? `<p><strong>Remarks:</strong> ${remarks}</p>` : ""}
+            </div>
+            <a href="${process.env.NEXTAUTH_URL || "http://localhost:3000"}/student/dashboard" class="button">View Dashboard</a>
+            ${status === "OFFER" ? "<p>🎊 Congratulations on your offer! The placement team will contact you with further details.</p>" : ""}
+            ${status === "TEST_CLEARED" || status === "INTERVIEW_CLEARED" ? "<p>Keep up the great work! Stay tuned for updates on the next round.</p>" : ""}
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} College Placement Portal. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to,
+    subject: `Application Update: ${companyName} - ${formattedStatus}`,
     html,
   });
 }

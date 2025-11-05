@@ -191,7 +191,7 @@ async function main() {
       driveId: drives[0].id,
       title: "Pre-Placement Talk",
       description: "Learn about Google's culture and interview process",
-      type: "PPT",
+      type: "PPT" as const,
       startTime: new Date("2025-01-15T14:00:00"),
       endTime: new Date("2025-01-15T16:00:00"),
       venue: "Auditorium",
@@ -200,7 +200,7 @@ async function main() {
       driveId: drives[0].id,
       title: "Online Assessment",
       description: "Coding test",
-      type: "TEST",
+      type: "TEST" as const,
       startTime: new Date("2025-01-18T10:00:00"),
       endTime: new Date("2025-01-18T12:00:00"),
       meetingLink: "https://meet.google.com/xyz-abc-def",
@@ -209,7 +209,7 @@ async function main() {
       driveId: drives[1].id,
       title: "Technical Interview Round 1",
       description: "First round interviews",
-      type: "INTERVIEW",
+      type: "INTERVIEW" as const,
       startTime: new Date("2025-01-20T09:00:00"),
       endTime: new Date("2025-01-20T18:00:00"),
       meetingLink: "https://teams.microsoft.com/xyz",
@@ -217,7 +217,7 @@ async function main() {
   ];
 
   for (const eventData of eventsData) {
-    await prisma.event.create({ data: eventData });
+    await prisma.event.create({ data: eventData as any });
   }
   console.log(`✅ Created ${eventsData.length} events`);
 

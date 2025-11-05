@@ -27,8 +27,8 @@
     "@tailwindcss/typography": "^0.5.19",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.9.1",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
     "@upstash/ratelimit": "^2.0.7",
     "@upstash/redis": "^1.35.6",
     "autoprefixer": "^10.4.17",
@@ -40,14 +40,14 @@
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.548.0",
     "mammoth": "^1.11.0",
-    "next": "^15.0.0",
+    "next": "15.0.3",
     "next-auth": "^4.24.10",
     "pdf-parse": "^2.4.5",
     "pdf2json": "^4.0.0",
     "postcss": "^8.4.35",
     "prisma": "^6.18.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106",
     "react-email": "^4.3.2",
     "react-hook-form": "^7.65.0",
     "recharts": "^3.3.0",
@@ -67,5 +67,9 @@
     "prettier": "^3.6.2",
     "tsx": "^4.20.6",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106"
   }
 }

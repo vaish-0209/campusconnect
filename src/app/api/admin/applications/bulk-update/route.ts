@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
         await prisma.application.update({
           where: { id: application.id },
           data: {
-            status,
+            status: status as any,
             ...(remarks && { remarks }),
           },
         });

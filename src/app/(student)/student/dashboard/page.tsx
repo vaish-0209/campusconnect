@@ -184,11 +184,6 @@ export default async function StudentDashboard() {
                         <h4 className="font-semibold text-foreground">
                           {drive.company.name}
                         </h4>
-                        {drive.company.tier && (
-                          <span className="px-3 py-1 text-xs bg-primary/10 text-primary border border-primary/20 rounded-full">
-                            {drive.company.tier}
-                          </span>
-                        )}
                         {drive.hasApplied && (
                           <span className="px-3 py-1 text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full">
                             ✓ Applied

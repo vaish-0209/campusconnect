@@ -47,3 +47,5 @@ prisma/migrations
 *.swp
 *.swo
 *~
+
+.vercel

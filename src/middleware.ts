@@ -5,6 +5,11 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip middleware for seed endpoint (temporary)
+  if (pathname === '/api/seed') {
+    return NextResponse.next();
+  }
+
   // Skip rate limiting for static files and internal Next.js routes
   if (
     pathname.startsWith('/_next') ||

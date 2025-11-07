@@ -26,10 +26,11 @@ const sentryWebpackPluginOptions = {
   // https://github.com/getsentry/sentry-webpack-plugin#options
 
   // Automatically annotate React components to show their name in breadcrumbs and session replay
-  automaticVercelMonitors: true,
+  automaticVercelMonitors: false, // Disabled to debug MonthlyUpdates error
 };
 
-// Only wrap with Sentry if DSN is configured
-module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig;
+// Temporarily disable Sentry to debug deployment issues
+module.exports = nextConfig;
+// module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+//   ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+//   : nextConfig;

@@ -3,22 +3,22 @@ import { redis } from './redis';
 
 /**
  * Rate limiter for general API endpoints
- * 10 requests per 10 seconds per IP
+ * 100 requests per 1 minute per IP
  */
 export const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, '10 s'),
+  limiter: Ratelimit.slidingWindow(100, '1 m'),
   analytics: true,
   prefix: '@ratelimit/general',
 });
 
 /**
  * Strict rate limiter for authentication endpoints
- * 5 requests per 1 minute per IP
+ * 20 requests per 1 minute per IP
  */
 export const authRatelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(5, '1 m'),
+  limiter: Ratelimit.slidingWindow(20, '1 m'),
   analytics: true,
   prefix: '@ratelimit/auth',
 });

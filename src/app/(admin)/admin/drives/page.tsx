@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Plus, Search, Filter, Zap, Calendar, Users, Edit } from "lucide-react";
+import { Plus, Search, Filter, Zap, Calendar, Users, Edit, FileUp } from "lucide-react";
 
 interface Drive {
   id: string;
@@ -165,13 +165,22 @@ function DrivesContent() {
               Create and manage placement drives
             </p>
           </div>
-          <Link
-            href="/admin/drives/new"
-            className="gradient-primary text-white rounded-full px-6 py-3 hover:opacity-90 transition-all font-medium flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Create Drive
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/admin/drives/import-pdf"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-6 py-3 hover:opacity-90 transition-all font-medium flex items-center gap-2"
+            >
+              <FileUp className="w-5 h-5" />
+              Import from PDF
+            </Link>
+            <Link
+              href="/admin/drives/new"
+              className="gradient-primary text-white rounded-full px-6 py-3 hover:opacity-90 transition-all font-medium flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Create Drive
+            </Link>
+          </div>
         </div>
 
         {/* Company Filter Badge */}

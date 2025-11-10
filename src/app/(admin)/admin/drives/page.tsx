@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Plus, Search, Filter, Zap, Calendar, Users } from "lucide-react";
+import { Plus, Search, Filter, Zap, Calendar, Users, Edit } from "lucide-react";
 
 interface Drive {
   id: string;
@@ -349,12 +349,22 @@ function DrivesContent() {
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <Link
-                            href={`/admin/drives/${drive.id}`}
-                            className="text-primary hover:text-primary/80 font-medium"
-                          >
-                            View Details
-                          </Link>
+                          <div className="flex items-center gap-3">
+                            <Link
+                              href={`/admin/drives/${drive.id}/edit`}
+                              className="flex items-center gap-1 text-blue-500 hover:text-blue-400 font-medium transition-colors"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Edit
+                            </Link>
+                            <span className="text-muted-foreground/30">|</span>
+                            <Link
+                              href={`/admin/drives/${drive.id}`}
+                              className="text-primary hover:text-primary/80 font-medium transition-colors"
+                            >
+                              View Details
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     );

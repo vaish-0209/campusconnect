@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Use require for pdf-parse to avoid ESM import issues
 const pdfParse = require("pdf-parse");
 
-// Initialize OpenAI (only if API key is available)
-const getOpenAI = () => {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OpenAI API key not configured");
+// Initialize Gemini (only if API key is available)
+const getGemini = () => {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("Gemini API key not configured");
   }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 };
 
 export async function POST(req: NextRequest) {
@@ -58,14 +56,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Use OpenAI to extract structured data
-    const openai = getOpenAI();
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert at extracting placement drive information from job descriptions and company recruitment PDFs.
+    // Use Gemini to extract structured data
+    const genAI = getGemini();
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `You are an expert at extracting placement drive information from job descriptions and company recruitment PDFs.
 
 Extract the following information from the text and return it as valid JSON:
 
@@ -99,20 +94,27 @@ IMPORTANT RULES:
 3. Extract numeric values only for CTC, CGPA, backlogs
 4. Be smart about inferring information (e.g., if it says "All branches", return all branch codes)
 5. For CTC, convert to LPA if given in other formats
-6. Return ONLY valid JSON, no markdown or extra text`,
-        },
-        {
-          role: "user",
-          content: `Extract placement drive information from this PDF text:\n\n${extractedText.slice(0, 10000)}`, // Limit to first 10k chars
-        },
-      ],
-      temperature: 0.3,
-      response_format: { type: "json_object" },
-    });
+6. Return ONLY valid JSON, no markdown or extra text, no code blocks
 
-    const extractedData = JSON.parse(
-      completion.choices[0].message.content || "{}"
-    );
+Extract placement drive information from this PDF text:
+
+${extractedText.slice(0, 30000)}`;
+
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+
+    console.log("🤖 Gemini Raw Response:", text);
+
+    // Clean the response - remove markdown code blocks if present
+    let cleanedText = text.trim();
+    if (cleanedText.startsWith("```json")) {
+      cleanedText = cleanedText.replace(/^```json\n?/, "").replace(/\n?```$/, "");
+    } else if (cleanedText.startsWith("```")) {
+      cleanedText = cleanedText.replace(/^```\n?/, "").replace(/\n?```$/, "");
+    }
+
+    const extractedData = JSON.parse(cleanedText);
 
     console.log("🤖 AI Extracted Data:", extractedData);
 

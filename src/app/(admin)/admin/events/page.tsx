@@ -95,13 +95,25 @@ export default function AdminEventsPage() {
 
   const openEditModal = (event: Event) => {
     setEditingEvent(event);
+
+    // Convert to local datetime string for datetime-local input
+    const formatLocalDateTime = (dateString: string) => {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
     setFormData({
       driveId: event.drive.id,
       title: event.title,
       description: event.description || "",
       type: event.type,
-      startTime: new Date(event.startTime).toISOString().slice(0, 16),
-      endTime: new Date(event.endTime).toISOString().slice(0, 16),
+      startTime: formatLocalDateTime(event.startTime),
+      endTime: formatLocalDateTime(event.endTime),
       venue: event.venue || "",
       meetingLink: event.meetingLink || "",
     });
@@ -273,9 +285,9 @@ export default function AdminEventsPage() {
                 Analytics
               </Link>
               
-                <button onClick={() => signOut({ callbackUrl: "/login" })}  className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
+                <Link href="/signout" className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
                   Logout
-                </button>
+                </Link>
               
             </div>
           </div>

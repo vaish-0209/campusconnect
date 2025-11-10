@@ -293,13 +293,20 @@ export default function ImportStudentsPage() {
           <div className="glass-card border border-border/50 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">Import Results</h3>
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="text-center p-6 bg-green-500/10 border border-green-500/20 rounded-xl">
                 <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
                 <div className="text-3xl font-bold text-green-400">
                   {results.imported}
                 </div>
                 <div className="text-sm text-green-400/80">Imported</div>
+              </div>
+              <div className="text-center p-6 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                <XCircle className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                <div className="text-3xl font-bold text-yellow-400">
+                  {results.skipped || 0}
+                </div>
+                <div className="text-sm text-yellow-400/80">Skipped (Duplicates)</div>
               </div>
               <div className="text-center p-6 bg-red-500/10 border border-red-500/20 rounded-xl">
                 <XCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
@@ -317,6 +324,24 @@ export default function ImportStudentsPage() {
               </div>
             </div>
 
+            {/* Duplicates Section */}
+            {results.duplicates && results.duplicates.length > 0 && (
+              <div className="mb-6">
+                <h4 className="font-semibold text-yellow-400 mb-2 flex items-center gap-2">
+                  <XCircle className="w-5 h-5" />
+                  Duplicates Skipped ({results.duplicates.length})
+                </h4>
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 max-h-64 overflow-y-auto">
+                  {results.duplicates.map((duplicate: any, idx: number) => (
+                    <div key={idx} className="text-sm text-yellow-400/90 mb-2">
+                      Row {duplicate.row}: {duplicate.rollNo} - {duplicate.email}
+                      <span className="text-yellow-400/70 ml-2">({duplicate.reason})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {results.errors.length > 0 && (
               <div>
                 <h4 className="font-semibold text-red-400 mb-2">Errors:</h4>
@@ -332,11 +357,23 @@ export default function ImportStudentsPage() {
               </div>
             )}
 
-            {results.failed === 0 && (
+            {results.failed === 0 && results.imported > 0 && (
               <div className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-400" />
                 <p className="text-green-400">
-                  All students imported successfully! Redirecting...
+                  {results.skipped > 0
+                    ? `${results.imported} students imported successfully! ${results.skipped} duplicates skipped. Redirecting...`
+                    : 'All students imported successfully! Redirecting...'
+                  }
+                </p>
+              </div>
+            )}
+
+            {results.failed === 0 && results.imported === 0 && results.skipped > 0 && (
+              <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center gap-2">
+                <XCircle className="w-5 h-5 text-yellow-400" />
+                <p className="text-yellow-400">
+                  All {results.skipped} students in the CSV already exist in the database. No new students were imported.
                 </p>
               </div>
             )}

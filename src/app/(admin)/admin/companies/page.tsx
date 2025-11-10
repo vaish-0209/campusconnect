@@ -241,9 +241,9 @@ export default function AdminCompaniesPage() {
                 Analytics
               </Link>
               
-                <button onClick={() => signOut({ callbackUrl: "/login" })}  className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
+                <Link href="/signout" className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all">
                   Logout
-                </button>
+                </Link>
               
             </div>
           </div>
@@ -298,7 +298,7 @@ export default function AdminCompaniesPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   {company.logo ? (
-                    <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-lg flex items-center justify-center bg-white/95 p-3 shadow-sm">
                       <img
                         src={company.logo}
                         alt={company.name}

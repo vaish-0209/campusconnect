@@ -1,0 +1,519 @@
+Test ID,Category,Subcategory,Test Scenario,Test Steps,Expected Result,Status,Notes,Priority,,,,,,
+1,Authentication,Student Registration,Student receives invite and registers,"1. Admin adds student with email rahul@example.com
+2. Check email inbox
+3. Click invite link
+4. Fill registration form with password
+5. Submit",Student registered successfully and redirected to dashboard,,Use real email for testing,High,,,,,,
+2,Authentication,Student Registration,Cannot register with weak password,"1. Click invite link
+2. Enter password '123'
+3. Submit",Error: Password must be at least 8 characters,,Test various weak passwords,High,,,,,,
+3,Authentication,Student Registration,Cannot register with duplicate email,"1. Try to register with email already in system
+2. Submit",Error: Email already registered,,Should not allow duplicate registration,High,,,,,,
+4,Authentication,Student Login,Student logs in successfully,"1. Go to /login
+2. Enter valid email and password
+3. Click Login",Redirected to /student/dashboard,,,High,,,,,,
+5,Authentication,Student Login,Student cannot login with wrong password,"1. Go to /login
+2. Enter valid email and wrong password
+3. Click Login",Error: Invalid credentials,,Should show error message,High,,,,,,
+6,Authentication,Student Session,Session persists on refresh,"1. Login as student
+2. Refresh page",Still logged in and on same page,,,Medium,,,,,,
+7,Authentication,Student Logout,Student can logout,"1. Login as student
+2. Click Logout button",Redirected to login page,,,High,,,,,,
+8,Authentication,Admin Login,Admin logs in successfully,"1. Go to /login
+2. Enter admin credentials
+3. Click Login",Redirected to /admin/dashboard,,,High,,,,,,
+9,Authentication,Admin Login,Admin cannot login with wrong password,"1. Go to /login
+2. Enter admin email with wrong password
+3. Click Login",Error: Invalid credentials,,Should show error message,High,,,,,,
+10,Authorization,Route Protection,Student cannot access admin routes,"1. Login as student
+2. Try to access /admin/students directly",Redirected to /student/dashboard or 403 error,,,High,,,,,,
+11,Authorization,Route Protection,Admin cannot access student routes,"1. Login as admin
+2. Try to access /student/drives directly",Redirected to /admin/dashboard or 403 error,,,High,,,,,,
+12,Authorization,Route Protection,Unauthenticated user redirected to login,"1. Without logging in
+2. Try to access /admin/students",Redirected to /login,,,High,,,,,,
+13,Admin - Students,Add Single Student,Add student with valid data,"1. Go to /admin/students
+2. Click 'Add Student'
+3. Fill form: Roll No: CS001, Name: Rahul Kumar, Email: rahul@test.com, Branch: CSE, CGPA: 8.5, Backlogs: 0, Phone: 9876543210
+4. Submit",Student added successfully and appears in list,,,High,,,,,,
+14,Admin - Students,Add Single Student,Cannot add duplicate email,"1. Click 'Add Student'
+2. Enter email that already exists
+3. Submit",Error: A user with this email already exists,,Test conflict detection,High,,,,,,
+15,Admin - Students,Add Single Student,Cannot add duplicate roll number,"1. Click 'Add Student'
+2. Enter roll number that already exists
+3. Submit",Error: A student with this roll number already exists,,Test conflict detection,High,,,,,,
+16,Admin - Students,Add Single Student,Cannot add invalid email,"1. Click 'Add Student'
+2. Enter email 'notanemail'
+3. Submit",Error: Invalid email address,,Form validation test,Medium,,,,,,
+17,Admin - Students,Add Single Student,Cannot add CGPA > 10,"1. Click 'Add Student'
+2. Enter CGPA: 10.5
+3. Submit",Error: CGPA must be between 0 and 10,,Boundary test,Medium,,,,,,
+18,Admin - Students,Add Single Student,Cannot add negative backlogs,"1. Click 'Add Student'
+2. Enter Backlogs: -1
+3. Submit",Error: Backlogs cannot be negative,,Validation test,Medium,,,,,,
+19,Admin - Students,Add Single Student,Added student receives invite,"1. Add student with valid email
+2. Check email inbox",Invite email received with registration link,,Use real email,High,,,,,,
+20,Admin - Students,Bulk Import,Download CSV template,"1. Go to /admin/students/import
+2. Click 'Download CSV Template'",CSV file downloaded with correct headers,,,High,,,,,,
+21,Admin - Students,Bulk Import,Template has correct headers,1. Open downloaded template,Headers: name,email,rollNumber,branch,cgpa,backlogs,phone,,Check format,High
+22,Admin - Students,Bulk Import,Import 5 valid students,"1. Fill CSV with 5 students
+2. Upload CSV
+3. Click 'Upload Students'","Results: 5 Imported, 0 Skipped, 0 Failed. All 5 students visible in list",,Test successful import,High,,,,,,
+23,Admin - Students,Bulk Import,Import same CSV again (duplicates),"1. Upload same CSV file again
+2. Check results","Results: 0 Imported, 5 Skipped (Duplicates), 0 Failed",,Duplicate detection test,High,,,,,,
+24,Admin - Students,Bulk Import,Duplicate section shows details,"1. After importing duplicates
+2. Check duplicate section","Shows list with row number, roll number, email, reason (Email/Roll number already exists)",,UI verification,High,,,,,,
+25,Admin - Students,Bulk Import,Import mix of new and duplicates,"1. Create CSV with 5 students (3 new, 2 existing)
+2. Upload CSV","Results: 3 Imported, 2 Skipped, 0 Failed",,Partial import test,High,,,,,,
+26,Admin - Students,Bulk Import,Import with invalid data,"1. Create CSV with invalid CGPA, missing email
+2. Upload CSV",Shows failed students with error reasons,,Error handling test,High,,,,,,
+27,Admin - Students,Bulk Import,Imported students receive invites,"1. Import 3 new students
+2. Check their email inboxes",All 3 receive invite emails,,End-to-end test,High,,,,,,
+28,Admin - Students,View Students,View list of all students,1. Go to /admin/students,"Shows grid of student cards with: name, roll no, branch, CGPA, backlogs, email, phone, application count, offer count",,UI verification,High,,,,,,
+29,Admin - Students,Search Students,Search by name,"1. Enter 'Rahul' in search box
+2. Press Enter",Shows only students with 'Rahul' in name,,,High,,,,,,
+30,Admin - Students,Search Students,Search by roll number,"1. Enter 'CS001' in search box
+2. Press Enter",Shows only student with roll number CS001,,,High,,,,,,
+31,Admin - Students,Search Students,Search by email,"1. Enter 'rahul@test.com' in search box
+2. Press Enter",Shows only student with that email,,,High,,,,,,
+32,Admin - Students,Search Students,Search is case-insensitive,"1. Enter 'RAHUL' (uppercase) in search
+2. Press Enter",Shows students with 'rahul' or 'Rahul' in name,,,Medium,,,,,,
+33,Admin - Students,Filter Students,Filter by branch,"1. Select 'Computer Science' from branch filter
+2. Apply filter",Shows only CSE students,,,High,,,,,,
+34,Admin - Students,Filter Students,Filter by CGPA range,"1. Set CGPA range 7.0 - 8.0
+2. Apply filter",Shows only students with CGPA between 7.0 and 8.0,,,High,,,,,,
+35,Admin - Students,Filter Students,Filter by backlogs,"1. Select '0 backlogs' filter
+2. Apply filter",Shows only students with 0 backlogs,,,Medium,,,,,,
+36,Admin - Students,Filter Students,Combine search and filters,"1. Search 'Kumar'
+2. Filter by branch 'CSE'
+3. Filter by CGPA 8.0-9.0",Shows students matching ALL criteria,,,Medium,,,,,,
+37,Admin - Students,Filter Students,Clear filters works,"1. Apply multiple filters
+2. Click 'Clear Filters'",All filters reset and all students shown,,,Medium,,,,,,
+38,Admin - Students,Sort Students,Sort by Roll No ascending,1. Click 'Roll No' column header once,Students sorted by roll number A-Z with up arrow icon,,,High,,,,,,
+39,Admin - Students,Sort Students,Sort by Roll No descending,1. Click 'Roll No' column header twice,Students sorted by roll number Z-A with down arrow icon,,,High,,,,,,
+40,Admin - Students,Sort Students,Active sort column highlighted,1. Click any sortable column,Active column shows purple color and arrow icon,,,Medium,,,,,,
+41,Admin - Students,Sort Students,Sort by Name alphabetically,1. Click 'Name' column header,Students sorted alphabetically by name,,,High,,,,,,
+42,Admin - Students,Sort Students,Sort by CGPA numerically,1. Click 'CGPA' column header,Students sorted by CGPA (highest to lowest when descending),,,High,,,,,,
+43,Admin - Students,Sort Students,Sort by Backlogs,1. Click 'Backlogs' column header,Students sorted by backlogs count,,,Medium,,,,,,
+44,Admin - Students,Sort Students,Sort by Applications count,1. Click 'Applications' column header,Students sorted by number of applications,,,Medium,,,,,,
+45,Admin - Students,Sort Students,Sort by Offers count,1. Click 'Offers' column header,Students sorted by number of offers,,,Medium,,,,,,
+46,Admin - Students,View Profile,View student profile details,1. Click 'View Profile' on Rahul's card,"Opens /admin/students/[id] showing: name, roll no, email, phone, branch, CGPA, backlogs",,Full profile view,High,,,,,,
+47,Admin - Students,View Profile,Profile shows applications list,"1. Open Rahul's profile
+2. Scroll to applications section","Shows list of all applications with: company name, drive title, status, applied date",,Check data accuracy,High,,,,,,
+48,Admin - Students,View Profile,Profile shows offers list,"1. Open Rahul's profile
+2. Scroll to offers section","Shows list of all offers with: company, drive, package, status",,Check data accuracy,High,,,,,,
+49,Admin - Students,View Profile,Back button returns to list,"1. Open any student profile
+2. Click 'Back' button",Returns to /admin/students list,,,Medium,,,,,,
+50,Admin - Students,Edit Student,Open edit modal with pre-filled data,"1. Click 'Edit' on Rahul's card
+2. Check form fields",All fields pre-filled with current data,,,High,,,,,,
+51,Admin - Students,Edit Student,Update CGPA and verify,"1. Open Rahul's edit modal
+2. Change CGPA from 8.5 to 8.7
+3. Save
+4. Check student card",CGPA updated to 8.7 on card immediately,,Test real-time update,High,,,,,,
+52,Admin - Students,Edit Student,Update phone number,"1. Edit student
+2. Update phone from 9876543210 to 9999999999
+3. Save",Phone number updated successfully,,,Medium,,,,,,
+53,Admin - Students,Edit Student,Update backlogs,"1. Edit Rahul
+2. Change backlogs from 1 to 0
+3. Save",Backlogs updated to 0,,,High,,,,,,
+54,Admin - Students,Edit Student,Changes persist in database,"1. Edit and save student
+2. Refresh page
+3. Check student card",Changes still visible after refresh,,,High,,,,,,
+55,Admin - Students,Edit Student,Student sees admin updates,"1. Admin updates Rahul's CGPA to 8.7
+2. Logout as admin
+3. Login as Rahul (student)
+4. Check profile",Rahul sees CGPA 8.7 in his profile,,Cross-role verification,High,,,,,,
+56,Admin - Students,Edit Student,Cannot update to duplicate email,"1. Edit student
+2. Change email to existing email
+3. Save",Error: A user with this email already exists,,Conflict test,High,,,,,,
+57,Admin - Students,Edit Student,Cannot update to duplicate roll number,"1. Edit student
+2. Change roll number to existing one
+3. Save",Error: A student with this roll number already exists,,Conflict test,High,,,,,,
+58,Admin - Students,Delete Student,Cancel deletion,"1. Click 'Delete' on test student
+2. Confirmation dialog appears
+3. Click 'Cancel'",Student still exists in list,,,Medium,,,,,,
+59,Admin - Students,Delete Student,Confirm deletion,"1. Click 'Delete' on test student
+2. Confirmation dialog appears
+3. Click 'Confirm'",Student removed from list immediately,,,High,,,,,,
+60,Admin - Students,Delete Student,Student cannot login after deletion,"1. Delete student account
+2. Try to login with that student's credentials",Error: Invalid credentials,,Verify account deleted,High,,,,,,
+61,Admin - Students,Delete Student,Student's applications deleted,"1. Student has 3 applications
+2. Admin deletes student
+3. Check drives for those applications",Applications no longer exist in drives,,Cascading delete test,High,,,,,,
+62,Admin - Companies,Add Company,Add company with logo,"1. Go to /admin/companies
+2. Click 'Add Company'
+3. Fill: Name: Microsoft, Industry: Technology, Website: microsoft.com
+4. Upload logo (PNG)
+5. Submit","Company added with logo, appears in companies list",,Test file upload,High,,,,,,
+63,Admin - Companies,Add Company,Add company without logo,"1. Add company
+2. Don't upload logo
+3. Submit",Company added with default logo shown,,,Medium,,,,,,
+64,Admin - Companies,Add Company,Cannot add duplicate company name,"1. Try to add company with existing name
+2. Submit",Error: Company already exists,,Conflict test,High,,,,,,
+65,Admin - Companies,View Companies,View companies grid,1. Go to /admin/companies,"Shows grid of company cards with: logo, name, industry, website",,UI verification,High,,,,,,
+66,Admin - Companies,Search Companies,Search by name,"1. Enter 'Microsoft' in search
+2. Press Enter",Shows only Microsoft company,,,High,,,,,,
+67,Admin - Companies,Filter Companies,Filter by industry,"1. Select 'Technology' industry filter
+2. Apply",Shows only technology companies,,,Medium,,,,,,
+68,Admin - Companies,View Companies,Open company details,1. Click on Microsoft card,Opens company details page with full information,,,High,,,,,,
+69,Admin - Companies,Edit Company,Update company description,"1. Click 'Edit' on Microsoft
+2. Update description
+3. Save",Description updated immediately,,,Medium,,,,,,
+70,Admin - Companies,Edit Company,Upload new logo,"1. Edit company
+2. Upload new logo image
+3. Save",New logo displayed on company card,,,Medium,,,,,,
+71,Admin - Companies,Delete Company,Cannot delete company with drives,"1. Try to delete company that has active drives
+2. Click Delete
+3. Confirm",Error: Cannot delete company with active drives,,Business logic test,High,,,,,,
+72,Admin - Companies,Delete Company,Delete company after removing drives,"1. Delete all drives for company
+2. Delete company
+3. Confirm",Company deleted successfully,,,Medium,,,,,,
+73,Admin - Drives,Create Drive,Create drive with full details,"1. Go to /admin/drives
+2. Click 'Create Drive'
+3. Fill: Company: Microsoft, Title: Software Engineer - Azure, Description: Backend role, Package: 24 LPA, Role: Full-time, Location: Bangalore, Deadline: 2025-11-30
+4. Set eligibility: CGPA >= 7.5, Max backlogs: 0, Branches: CSE,IT
+5. Submit","Drive created with status OPEN, appears in drives list",,Full flow test,High,,,,,,
+74,Admin - Drives,View Drives,View drives list,1. Go to /admin/drives,"Shows list of drives with: company logo, title, package, deadline, status, application count",,UI verification,High,,,,,,
+75,Admin - Drives,Filter Drives,Filter by status OPEN,"1. Select 'OPEN' status filter
+2. Apply",Shows only open drives,,,High,,,,,,
+76,Admin - Drives,Filter Drives,Filter by status CLOSED,"1. Select 'CLOSED' status filter
+2. Apply",Shows only closed drives,,,High,,,,,,
+77,Admin - Drives,Filter Drives,Filter by company,"1. Select 'Microsoft' company filter
+2. Apply",Shows only Microsoft drives,,,Medium,,,,,,
+78,Admin - Drives,Search Drives,Search by title,"1. Enter 'Azure' in search
+2. Press Enter",Shows drives with 'Azure' in title,,,High,,,,,,
+79,Admin - Drives,View Drive Details,Open drive details page,1. Click on Microsoft Azure drive,Opens drive details page with full information,,,High,,,,,,
+80,Admin - Drives,View Drive Details,View eligibility criteria,"1. Open drive details
+2. Check eligibility section","Shows: CGPA >= 7.5, Max backlogs: 0, Allowed branches: CSE, IT",,Verify criteria display,High,,,,,,
+81,Admin - Drives,View Drive Details,View applicants list,"1. Open drive details
+2. Check applicants section","Shows list with: name, roll no, CGPA, backlogs, status, application date",,Check data accuracy,High,,,,,,
+82,Admin - Drives,View Drive Details,Filter applicants by status,"1. In drive details
+2. Filter applicants by 'SHORTLISTED'
+3. Apply",Shows only shortlisted applicants,,,Medium,,,,,,
+83,Admin - Drives,Edit Drive,Update package,"1. Click 'Edit Drive'
+2. Change package from 24 LPA to 26 LPA
+3. Save",Package updated immediately on drive card,,,High,,,,,,
+84,Admin - Drives,Edit Drive,Update deadline,"1. Edit drive
+2. Change deadline to 2025-12-15
+3. Save",New deadline shown on drive,,,High,,,,,,
+85,Admin - Drives,Edit Drive,Update eligibility criteria,"1. Edit drive
+2. Change CGPA requirement from 7.5 to 8.0
+3. Save",Eligibility updated (affects student eligibility),,,High,,,,,,
+86,Admin - Drives,Edit Drive,Students see eligibility changes,"1. Admin changes CGPA to 8.0
+2. Student with CGPA 7.8 views drive",Drive shows 'Not Eligible: CGPA requirement not met',,Cross-impact test,High,,,,,,
+87,Admin - Drives,Manage Applications,Shortlist applicants,"1. Open drive with 10 applicants
+2. Select 5 students
+3. Click 'Shortlist'
+4. Confirm",Status changes to SHORTLISTED for those 5,,,High,,,,,,
+88,Admin - Drives,Manage Applications,Select applicants,"1. Select 3 shortlisted students
+2. Click 'Select'
+3. Confirm","Status changes to SELECTED, offers created automatically",,End-to-end test,High,,,,,,
+89,Admin - Drives,Manage Applications,Reject applicants,"1. Select 2 students
+2. Click 'Reject'
+3. Confirm",Status changes to REJECTED,,,High,,,,,,
+90,Admin - Drives,Manage Applications,Students receive status notifications,"1. Admin shortlists student
+2. Check student's notifications/email",Student notified of status change,,If notifications enabled,Medium,,,,,,
+91,Admin - Drives,Close Drive,Close drive to applications,"1. Open drive
+2. Click 'Close Drive'
+3. Confirm",Drive status changes to CLOSED,,,High,,,,,,
+92,Admin - Drives,Close Drive,Students cannot apply to closed drive,"1. Close drive
+2. Login as student
+3. Try to apply",Apply button disabled with 'Drive closed' message,,,High,,,,,,
+93,Admin - Drives,Close Drive,Closed drive still visible,"1. Close drive
+2. Check drives list",Drive visible with 'CLOSED' badge,,Should not disappear,Medium,,,,,,
+94,Admin - Events,Create Event,Create PPT event,"1. Go to /admin/events
+2. Click 'Create Event'
+3. Fill: Drive: Microsoft Azure, Title: Pre-Placement Talk, Type: PPT, Description: Intro to Azure, Start: 2025-11-09 2:00 PM, End: 2025-11-09 4:00 PM, Venue: Auditorium, Meeting Link: https://meet.google.com/xyz
+4. Submit","Event created, appears on calendar on Nov 9",,Full event flow,High,,,,,,
+95,Admin - Events,Create Event,Event shows correct time on calendar,"1. Create event at 2:00 PM
+2. Check calendar",Calendar shows '2:00 PM' (not UTC time 8:30 AM),,Timezone fix verification,High,,,,,,
+96,Admin - Events,Create Event,Event color-coded by type,"1. Create PPT event
+2. Check calendar",PPT event shows blue color,,Check color coding,Medium,,,,,,
+97,Admin - Events,Conflict Detection,Cannot create overlapping event,"1. Create event at 2:00-4:00 PM on Nov 9
+2. Try to create another at 2:00-4:00 PM same day
+3. Submit",Error: Time conflict detected. Another event is already scheduled at this time.,,Critical conflict test,High,,,,,,
+98,Admin - Events,Conflict Detection,Shows conflicting event details,"1. Try to create conflicting event
+2. Check error message","Shows details of conflicting event: title, type, time, venue",,Error message verification,High,,,,,,
+99,Admin - Events,Conflict Detection,Can create non-overlapping event,"1. Create event at 2:00-4:00 PM
+2. Create another at 5:00-6:00 PM same day
+3. Submit",Second event created successfully (no conflict),,,High,,,,,,
+100,Admin - Events,View Events - Calendar,Calendar shows current month,"1. Go to /admin/events
+2. Check calendar view",Shows November 2025 with all events,,,High,,,,,,
+101,Admin - Events,View Events - Calendar,Each day shows up to 3 events,"1. Create 5 events on Nov 12
+2. Check calendar",Shows 3 events + '+2 more' link,,Overflow handling,Medium,,,,,,
+102,Admin - Events,View Events - Calendar,Click date opens day details,"1. Click Nov 12 (has events)
+2. Check modal",Modal opens showing all events for Nov 12,,,High,,,,,,
+103,Admin - Events,View Events - Calendar,Click event opens edit modal,1. Click event on calendar,Edit modal opens with event details pre-filled,,,High,,,,,,
+104,Admin - Events,View Events - Calendar,Navigate months works,"1. Click 'Next Month' arrow
+2. Check calendar",Shows December 2025,,,Medium,,,,,,
+105,Admin - Events,View Events - Calendar,Today's date highlighted,1. Check calendar,Current date has special highlight/border,,Visual verification,Low,,,,,,
+106,Admin - Events,View Events - List,Toggle to list view,"1. Click 'List View' toggle
+2. Check display",Shows all events as cards sorted by start time,,View switching,High,,,,,,
+107,Admin - Events,View Events - List,Event cards show all details,"1. In list view
+2. Check event card","Shows: type badge, title, company, drive, time, venue, meeting link",,UI verification,High,,,,,,
+108,Admin - Events,View Events - List,Join meeting link works,"1. In list view
+2. Click 'Join Meeting' on event",Opens meeting link in new tab,,,Medium,,,,,,
+109,Admin - Events,Edit Event,Time displays correctly in edit form,"1. Click event showing '2:00 PM' on calendar
+2. Check edit form time fields",Shows '2:00 PM' (not 8:30 AM due to timezone),,Timezone bug verification,High,,,,,,
+110,Admin - Events,Edit Event,Update venue,"1. Edit event
+2. Change venue from 'Auditorium' to 'Seminar Hall'
+3. Save",Venue updated on calendar and in details,,,Medium,,,,,,
+111,Admin - Events,Edit Event,Update time without conflict,"1. Edit event at 2:00 PM
+2. Change to 3:00 PM (no conflict)
+3. Save",Time updated successfully on calendar,,,High,,,,,,
+112,Admin - Events,Edit Event,Cannot update to conflicting time,"1. Edit event
+2. Change time to overlap with another event
+3. Save",Error: Time conflict detected,,Edit conflict test,High,,,,,,
+113,Admin - Events,Edit Event,Calendar updates immediately,"1. Edit event time
+2. Save
+3. Check calendar",Calendar shows new time without page refresh,,,Medium,,,,,,
+114,Admin - Events,Delete Event,Confirm event deletion,"1. Click delete on event
+2. Confirmation dialog appears
+3. Click 'Confirm'",Event removed from calendar immediately,,,High,,,,,,
+115,Admin - Events,Delete Event,Cancel deletion,"1. Click delete
+2. Click 'Cancel'",Event remains on calendar,,,Medium,,,,,,
+116,Student - Profile,First Login,Dashboard shows correct info,"1. Login as Rahul (first time after registration)
+2. Check dashboard","Shows: name, roll no, email, branch, CGPA, backlogs, phone",,Profile display,High,,,,,,
+117,Student - Profile,First Login,Welcome message shows,"1. First login
+2. Check dashboard",Shows welcome message with student's name,,,Low,,,,,,
+118,Student - Profile,Edit Profile,Open edit modal,"1. Click 'Edit Profile'
+2. Check form fields",Form opens with current data pre-filled,,,High,,,,,,
+119,Student - Profile,Edit Profile,Update phone number,"1. Edit profile
+2. Update phone to 8888888888
+3. Save",Phone updated successfully,,,Medium,,,,,,
+120,Student - Profile,Edit Profile,Cannot change roll number,"1. Open edit form
+2. Check roll number field",Roll number field is disabled/read-only,,,High,,,,,,
+121,Student - Profile,Edit Profile,Cannot change email,"1. Open edit form
+2. Check email field",Email field is disabled/read-only,,,High,,,,,,
+122,Student - Profile,Edit Profile,Cannot change CGPA,"1. Open edit form
+2. Check CGPA field",CGPA field is disabled/read-only (admin-only),,,High,,,,,,
+123,Student - Profile,Edit Profile,Cannot change backlogs,"1. Open edit form
+2. Check backlogs field",Backlogs field is disabled/read-only (admin-only),,,High,,,,,,
+124,Student - Profile,Edit Profile,Changes reflect immediately,"1. Update phone
+2. Save
+3. Check profile",Updated phone shown without page refresh,,,Medium,,,,,,
+125,Student - Profile,Admin Updates,See admin CGPA update,"1. Admin updates Rahul's CGPA from 8.5 to 9.0
+2. Rahul refreshes dashboard",Rahul sees CGPA: 9.0 in his profile,,Cross-role test,High,,,,,,
+126,Student - Profile,Admin Updates,See admin backlogs update,"1. Admin updates Rahul's backlogs from 1 to 0
+2. Rahul refreshes page",Rahul sees Backlogs: 0,,,High,,,,,,
+127,Student - Profile,Admin Updates,Eligibility updated after admin change,"1. Admin updates Rahul's CGPA to meet drive requirement
+2. Rahul views drives page",Previously ineligible drive now shows 'Apply' button,,Business logic test,High,,,,,,
+128,Student - Drives,View Drives,View available drives list,"1. Login as Rahul
+2. Go to /student/drives","Shows list of all OPEN drives with: logo, title, package, deadline, location",,UI verification,High,,,,,,
+129,Student - Drives,Filter Drives,Filter by package range,"1. Set package filter 20-30 LPA
+2. Apply",Shows only drives in that package range,,,Medium,,,,,,
+130,Student - Drives,Filter Drives,Filter by location,"1. Select 'Bangalore' location filter
+2. Apply",Shows only Bangalore drives,,,Medium,,,,,,
+131,Student - Drives,Search Drives,Search by company name,"1. Enter 'Microsoft' in search
+2. Press Enter",Shows only Microsoft drives,,,High,,,,,,
+132,Student - Drives,Eligibility,Eligible drive shows Apply button,"1. Rahul has CGPA 8.5, 0 backlogs, CSE branch
+2. Drive requires CGPA >= 8.0, max 0 backlogs, CSE branch
+3. Check drive card",Drive shows green 'Apply' button,,,High,,,,,,
+133,Student - Drives,Eligibility,Ineligible due to CGPA,"1. Drive requires CGPA >= 8.0
+2. Rahul has CGPA 7.5
+3. Check drive card","Shows 'Not Eligible' badge and reason: 'CGPA requirement not met (Required: 8.0, Yours: 7.5)'",,Eligibility logic test,High,,,,,,
+134,Student - Drives,Eligibility,Ineligible due to backlogs,"1. Drive requires max 0 backlogs
+2. Rahul has 1 backlog
+3. Check drive card","Shows 'Not Eligible: Backlogs exceed limit (Max: 0, Yours: 1)'",,Eligibility logic test,High,,,,,,
+135,Student - Drives,Eligibility,Ineligible due to branch,"1. Drive requires CSE branch only
+2. Rahul is in IT branch
+3. Check drive card",Shows 'Not Eligible: Branch not allowed',,Eligibility logic test,High,,,,,,
+136,Student - Drives,Eligibility,Apply button disabled when ineligible,"1. View ineligible drive
+2. Check Apply button",Apply button is disabled/grayed out,,,High,,,,,,
+137,Student - Drives,Eligibility,Eligibility updates after admin change,"1. Rahul ineligible for drive (CGPA 7.5, needs 8.0)
+2. Admin updates Rahul's CGPA to 8.5
+3. Rahul refreshes drives page",Drive now shows 'Apply' button (eligible),,Dynamic eligibility,High,,,,,,
+138,Student - Drives,Apply to Drive,Apply to eligible drive,"1. Rahul clicks 'Apply' on Microsoft Azure drive
+2. Confirmation modal appears
+3. Click 'Confirm'",Success message: 'Application submitted successfully',,Full application flow,High,,,,,,
+139,Student - Drives,Apply to Drive,Drive shows Applied badge,"1. After applying
+2. Check drive card",Drive card shows 'Applied' badge with green checkmark,,UI feedback,High,,,,,,
+140,Student - Drives,Apply to Drive,Apply button changes to Withdraw,"1. After applying
+2. Check drive card",Button changes to 'Withdraw Application',,,High,,,,,,
+141,Student - Drives,Apply to Drive,Application appears in My Applications,"1. Apply to drive
+2. Go to /student/applications",Application visible in list,,,High,,,,,,
+142,Student - Drives,Withdraw Application,Withdraw application,"1. Click 'Withdraw Application' on applied drive
+2. Confirmation: 'Are you sure?'
+3. Click 'Confirm'",Success: 'Application withdrawn',,Withdrawal flow,High,,,,,,
+143,Student - Drives,Withdraw Application,Drive shows Apply button again,"1. After withdrawing
+2. Check drive card",Button changes back to 'Apply',,,High,,,,,,
+144,Student - Drives,Withdraw Application,Removed from My Applications,"1. Withdraw application
+2. Go to /student/applications",Application no longer in list,,,High,,,,,,
+145,Student - Drives,Application Deadline,Can apply before deadline,"1. Drive deadline: 2025-11-30
+2. Today: 2025-11-29
+3. Click Apply",Application submitted successfully,,,High,,,,,,
+146,Student - Drives,Application Deadline,Cannot apply after deadline,"1. Drive deadline: 2025-11-30
+2. Today: 2025-12-01
+3. Check drive card","Apply button disabled, shows 'Deadline passed' message",,Time-based logic,High,,,,,,
+147,Student - Drives,Application Deadline,Existing applications still visible,"1. Applied before deadline
+2. Deadline passes
+3. Check My Applications",Application still visible in list,,,Medium,,,,,,
+148,Student - Applications,View Applications,View My Applications page,"1. Login as Rahul
+2. Go to /student/applications",Shows list of all Rahul's applications,,UI verification,High,,,,,,
+149,Student - Applications,View Applications,Application card shows details,1. Check application card,"Shows: company logo, company name, drive title, package, status badge, applied date, deadline",,Data accuracy,High,,,,,,
+150,Student - Applications,Filter Applications,Filter by status APPLIED,"1. Select 'APPLIED' status filter
+2. Apply",Shows only applications with APPLIED status,,,High,,,,,,
+151,Student - Applications,Filter Applications,Filter by status SHORTLISTED,"1. Select 'SHORTLISTED' filter
+2. Apply",Shows only shortlisted applications,,,High,,,,,,
+152,Student - Applications,Filter Applications,Filter by status SELECTED,"1. Select 'SELECTED' filter
+2. Apply",Shows only selected applications,,,High,,,,,,
+153,Student - Applications,Filter Applications,Filter by status REJECTED,"1. Select 'REJECTED' filter
+2. Apply",Shows only rejected applications,,,Medium,,,,,,
+154,Student - Applications,Sort Applications,Sort by applied date,"1. Click 'Applied Date' sort
+2. Check order",Applications sorted by date (newest first or oldest first),,,Medium,,,,,,
+155,Student - Applications,View Application,Click application opens details,1. Click on any application card,Opens drive details page with full information,,,High,,,,,,
+156,Student - Applications,Status Updates,Status changes to SHORTLISTED,"1. Admin shortlists Rahul
+2. Rahul refreshes applications page","Status badge changes from 'APPLIED' to 'SHORTLISTED', color changes to yellow",,Status sync test,High,,,,,,
+157,Student - Applications,Status Updates,Status changes to SELECTED,"1. Admin selects Rahul
+2. Rahul refreshes page","Status badge changes to 'SELECTED', color changes to green",,Status sync test,High,,,,,,
+158,Student - Applications,Status Updates,Status changes to REJECTED,"1. Admin rejects Rahul
+2. Rahul refreshes page","Status badge changes to 'REJECTED', color changes to red",,Status sync test,High,,,,,,
+159,Student - Applications,Status Updates,Receive notification on shortlist,"1. Admin shortlists Rahul
+2. Check Rahul's notifications",Notification received about being shortlisted,,If notifications enabled,Medium,,,,,,
+160,Student - Applications,Status Updates,Receive notification on selection,"1. Admin selects Rahul
+2. Check notifications",Notification received about being selected,,If notifications enabled,High,,,,,,
+161,Student - Offers,View Offers,View offers page,"1. Rahul selected for 2 drives
+2. Go to /student/offers",Shows 2 offer cards,,,High,,,,,,
+162,Student - Offers,View Offers,Offer card shows details,1. Check offer card,"Shows: company logo, company name, drive title, package, role type (Full-time/Intern), location, offer date, status",,Data accuracy,High,,,,,,
+163,Student - Offers,View Offers,Both offers show PENDING status,"1. Check both offers
+2. No action taken yet",Both show status 'PENDING' badge,,Initial state,High,,,,,,
+164,Student - Offers,Accept Offer,Accept offer,"1. Click 'Accept Offer' on Microsoft offer
+2. Confirmation: 'Accept this offer? This may affect other pending offers.'
+3. Click 'Confirm'",Microsoft offer status changes to 'ACCEPTED' with green badge,,Offer acceptance flow,High,,,,,,
+165,Student - Offers,Accept Offer,Other offer remains pending,"1. After accepting Microsoft
+2. Check Google offer",Google offer still shows 'PENDING' status,,Or auto-rejected if policy,Medium,,,,,,
+166,Student - Offers,Reject Offer,Reject offer,"1. Click 'Reject' on Google offer
+2. Confirmation: 'Are you sure?'
+3. Click 'Confirm'",Google offer status changes to 'REJECTED' with red badge,,Rejection flow,High,,,,,,
+167,Student - Offers,Reject Offer,Cannot undo rejection,"1. Reject offer
+2. Try to accept rejected offer",No accept button available on rejected offer,,,Medium,,,,,,
+168,Student - Events,View Events,View events calendar,"1. Login as Rahul
+2. Go to /student/events",Shows calendar view for current month with all events,,,High,,,,,,
+169,Student - Events,View Events,Events color-coded by type,1. Check calendar,"PPT: blue, TEST: orange, INTERVIEW: purple, OTHER: gray",,Visual verification,Medium,,,,,,
+170,Student - Events,View Events,Click date opens day details,"1. Click date with events
+2. Check modal",Modal shows all events for that day with full details,,,High,,,,,,
+171,Student - Events,Event Details,Event shows all information,"1. Open event
+2. Check details","Shows: title, type, time, venue, meeting link, company, drive, description",,Data accuracy,High,,,,,,
+172,Student - Events,Event Details,Join meeting link works,1. Click 'Join Meeting' on event with link,Opens meeting link in new tab,,,Medium,,,,,,
+173,Student - Events,Filter Events,Filter by event type PPT,"1. Select 'PPT' type filter
+2. Apply",Shows only PPT events,,,Medium,,,,,,
+174,Student - Events,Filter Events,Filter by company,"1. Select 'Microsoft' company filter
+2. Apply",Shows only Microsoft events,,,Medium,,,,,,
+175,Student - Events,View Events,Toggle to list view,1. Click 'List View' toggle,Shows chronological list of all upcoming events,,,Medium,,,,,,
+176,Admin - Analytics,Dashboard Stats,View total students,"1. Login as admin
+2. Go to /admin/analytics
+3. Check stats",Shows total students count (matches actual),,,High,,,,,,
+177,Admin - Analytics,Dashboard Stats,View total companies,"1. Check analytics
+2. Check companies stat",Shows total companies count,,,Medium,,,,,,
+178,Admin - Analytics,Dashboard Stats,View total drives,"1. Check analytics
+2. Check drives stat","Shows total drives with breakdown: X OPEN, Y CLOSED, Z COMPLETED",,Breakdown accuracy,Medium,,,,,,
+179,Admin - Analytics,Dashboard Stats,View total applications,1. Check analytics,Shows total applications count,,,Medium,,,,,,
+180,Admin - Analytics,Dashboard Stats,View total offers,1. Check analytics,Shows total offers count,,,Medium,,,,,,
+181,Admin - Analytics,Dashboard Stats,View placement percentage,1. Check analytics,Shows placement percentage: (Students with offers / Total students) * 100%,,Calculation accuracy,High,,,,,,
+182,Admin - Analytics,Placement Stats,View placements chart,"1. Check analytics page
+2. View placements over time chart",Shows chart with placements trend over time,,,Medium,,,,,,
+183,Admin - Analytics,Placement Stats,View branch-wise statistics,"1. Check analytics
+2. View branch breakdown","Shows: CSE: X placements, IT: Y placements, ECE: Z placements",,Breakdown accuracy,Medium,,,,,,
+184,Admin - Analytics,Placement Stats,View company-wise hiring,"1. Check analytics
+2. View company statistics","Shows: Microsoft: X hires, Google: Y hires, etc.",,Company stats,Medium,,,,,,
+185,Admin - Analytics,Placement Stats,View package distribution,"1. Check analytics
+2. View package breakdown","Shows: 0-10 LPA: X students, 10-20 LPA: Y students, 20+ LPA: Z students",,Package ranges,Medium,,,,,,
+186,Admin - Analytics,Export Reports,Export student report,"1. Click 'Export Student Report'
+2. Check downloaded file",CSV file downloaded with all student data,,,High,,,,,,
+187,Admin - Analytics,Export Reports,Export placement report,"1. Click 'Export Placement Report'
+2. Check downloaded file",CSV file downloaded with placement statistics,,,High,,,,,,
+188,Edge Cases,Network Errors,Handle network error on apply,"1. Disconnect internet
+2. Try to apply to drive
+3. Check error","Error message: 'Network error, please try again'",,Error handling,High,,,,,,
+189,Edge Cases,Network Errors,Retry after reconnecting,"1. Reconnect internet
+2. Retry application",Application submitted successfully,,,High,,,,,,
+190,Edge Cases,Session Expiry,Session expires after 24 hours,"1. Login as Rahul
+2. Leave tab open for 24 hours
+3. Try to apply to drive",Redirected to login page,,,Medium,,,,,,
+191,Edge Cases,Session Expiry,Redirect back after login,"1. Session expired
+2. Login again",Redirected back to original page (drive page),,,Medium,,,,,,
+192,Edge Cases,Concurrent Updates,Admin concurrent profile updates,"1. Admin 1 opens Rahul's edit form (CGPA: 8.5)
+2. Admin 2 updates Rahul's CGPA to 9.0
+3. Admin 1 saves CGPA as 8.7
+4. Check final CGPA",Last write wins: CGPA becomes 8.7,,Or optimistic lock error,Low,,,,,,
+193,Edge Cases,File Upload,Reject oversized logo,"1. Try to upload 50MB logo
+2. Submit","Error: 'File too large, max 5MB'",,File size validation,Medium,,,,,,
+194,Edge Cases,File Upload,Reject invalid file type,"1. Try to upload .exe file as logo
+2. Submit","Error: 'Invalid file type, only JPG/PNG allowed'",,File type validation,Medium,,,,,,
+195,Edge Cases,File Upload,Accept valid logo,"1. Upload 2MB PNG logo
+2. Submit",Logo uploaded successfully,,,High,,,,,,
+196,Edge Cases,Form Validation,Empty required fields,"1. Try to submit form with empty required fields
+2. Submit",Inline validation errors shown for each field,,,High,,,,,,
+197,Edge Cases,Form Validation,Invalid email format,"1. Enter 'notanemail' in email field
+2. Submit",Error: 'Invalid email address',,Email validation,High,,,,,,
+198,Edge Cases,Form Validation,CGPA out of range,"1. Enter CGPA 10.5
+2. Submit",Error: 'CGPA must be between 0 and 10',,Range validation,Medium,,,,,,
+199,Edge Cases,Form Validation,Negative backlogs,"1. Enter backlogs -1
+2. Submit",Error: 'Backlogs cannot be negative',,Validation test,Medium,,,,,,
+200,Responsive Design,Mobile View,Login page on mobile (375px),"1. Resize browser to 375px width
+2. Check login page",Login form renders correctly and is usable,,,High,,,,,,
+201,Responsive Design,Mobile View,Dashboard on mobile,1. Login and check dashboard on 375px width,"Dashboard responsive, all elements visible and usable",,UI test,High,,,,,,
+202,Responsive Design,Mobile View,Drive cards stack vertically,1. View drives on mobile,Drive cards stack in single column,,,Medium,,,,,,
+203,Responsive Design,Mobile View,Navigation becomes hamburger,1. Check navigation on mobile,Navigation menu becomes hamburger/mobile menu,,,Medium,,,,,,
+204,Responsive Design,Mobile View,Calendar mobile layout,1. View events calendar on mobile,Calendar switches to mobile-friendly layout,,,Medium,,,,,,
+205,Responsive Design,Mobile View,Forms scrollable on mobile,1. Open any form on mobile,Form is scrollable and all fields accessible,,,High,,,,,,
+206,Responsive Design,Tablet View,2-column grid on tablet (768px),"1. Resize to 768px
+2. View drives",Drive cards show in 2-column grid,,,Medium,,,,,,
+207,Responsive Design,Tablet View,Calendar on tablet,1. View calendar on 768px width,Calendar displays properly with all dates visible,,,Medium,,,,,,
+208,Responsive Design,Tablet View,Modals fit on tablet,1. Open any modal on 768px,Modal fits on screen without horizontal scroll,,,Medium,,,,,,
+209,Responsive Design,Desktop View,3-4 column grid (1920px),"1. View on 1920px width
+2. Check drives list",Drive cards show in 3-4 column grid,,,Low,,,,,,
+210,Responsive Design,Desktop View,Full calendar visible,1. View calendar on desktop,Full month calendar visible without scrolling,,,Low,,,,,,
+211,Responsive Design,Desktop View,Proper spacing,1. Check all pages on desktop,All content properly spaced and aligned,,,Low,,,,,,
+212,Performance,Load Testing,Import 1000 students,"1. Create CSV with 1000 students
+2. Import via bulk upload
+3. Measure time",All 1000 students imported within reasonable time (< 30 sec),,,Medium,,,,,,
+213,Performance,Load Testing,Students list loads quickly,"1. Navigate to /admin/students (1000 students)
+2. Measure load time",Page loads within 2 seconds,,,High,,,,,,
+214,Performance,Load Testing,Search remains responsive,"1. Search in 1000 students list
+2. Check response time",Search results appear within 500ms,,,Medium,,,,,,
+215,Performance,Load Testing,Filter remains responsive,"1. Apply filters on 1000 students
+2. Check response time",Filtered results appear within 500ms,,,Medium,,,,,,
+216,Performance,Load Testing,Pagination works correctly,1. Navigate through pages of 1000 students,Pagination buttons work smoothly without lag,,,Medium,,,,,,
+217,Performance,Large Datasets,Create 50 companies,"1. Add 50 companies
+2. View companies page",All companies load and display correctly,,,Low,,,,,,
+218,Performance,Large Datasets,Create 100 drives,"1. Add 100 drives
+2. View drives page",All drives load within 3 seconds,,,Medium,,,,,,
+219,Performance,Large Datasets,500 students apply to 1 drive,"1. 500 students apply to same drive
+2. Admin opens drive details
+3. Measure load time",Drive details page loads within 3 seconds,,,Medium,,,,,,
+220,Performance,Large Datasets,Filter 500 applications,"1. In drive with 500 applications
+2. Filter by status
+3. Check response time",Filtering works smoothly without lag,,,Medium,,,,,,
+221,Security,SQL Injection,Search with SQL injection,"1. In search box enter: '; DROP TABLE users; --
+2. Press Enter","No error, search returns no results. Database intact.",,Security test,High,,,,,,
+222,Security,SQL Injection,Verify database intact,"1. After SQL injection attempt
+2. Check students still exist",All students data still exists,,,High,,,,,,
+223,Security,XSS Attack,Save name with script tag,"1. Try to save student name as: <script>alert('XSS')</script>
+2. Save
+3. View student card",Name displayed as plain text (HTML escaped). No script execution.,,XSS prevention,High,,,,,,
+224,Security,Authorization Bypass,Student access admin route via URL,"1. Login as student
+2. Manually enter /admin/students in browser
+3. Press Enter",Redirected to /student/dashboard or 403 error,,,High,,,,,,
+225,Security,Authorization Bypass,Student call admin API,"1. Login as student
+2. Use browser console to call: fetch('/api/admin/students/add', {method: 'POST'})
+3. Check response",Response: 401 Unauthorized,,API security,High,,,,,,
+226,Security,CSRF Protection,Forms include CSRF tokens,"1. Inspect any form
+2. Check hidden inputs",CSRF token present in form,,,Medium,,,,,,
+227,Security,CSRF Protection,Request without token rejected,"1. Send API request without CSRF token
+2. Check response",Response: 403 Forbidden or CSRF validation error,,Token validation,Medium,,,,,,
+228,Data Integrity,Cascading Deletes,Cannot delete company with drives,"1. Company has 3 active drives
+2. Try to delete company
+3. Check error",Error: 'Cannot delete company with active drives',,Business rule,High,,,,,,
+229,Data Integrity,Cascading Deletes,Delete drives then company,"1. Delete all 3 drives
+2. Delete company
+3. Check result",Company and all related events deleted successfully,,,Medium,,,,,,
+230,Data Integrity,Orphaned Records,Delete student deletes applications,"1. Rahul has 3 applications
+2. Admin deletes Rahul's account
+3. Check drives for applications",Rahul's 3 applications no longer exist in any drive,,Cascading delete,High,,,,,,
+231,Data Integrity,Orphaned Records,Drive application count updates,"1. Drive has 10 applications
+2. Delete 1 student with application to that drive
+3. Check drive application count",Drive application count updated to 9,,,Medium,,,,,,
+232,Browser Compatibility,Chrome,Full test on Chrome,1. Run all critical tests on Chrome browser,All features work as expected,,,High,,,,,,
+233,Browser Compatibility,Firefox,Full test on Firefox,1. Run all critical tests on Firefox browser,All features work as expected,,,High,,,,,,
+234,Browser Compatibility,Safari,Full test on Safari,1. Run all critical tests on Safari browser (Mac),All features work as expected,,,Medium,,,,,,
+235,Browser Compatibility,Edge,Full test on Edge,1. Run all critical tests on Edge browser,All features work as expected,,,Medium,,,,,,

@@ -2,10 +2,22 @@ import { Resend } from "resend";
 import { PasswordResetEmail } from "@/emails/password-reset";
 import { render } from "@react-email/render";
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM_EMAIL = process.env.EMAIL_FROM || "College Placement <noreply@placement.edu>";
+
+// Lazy initialization of Resend - only create when needed and key exists
+let resendInstance: Resend | null = null;
+
+function getResend(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
+  }
+
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+
+  return resendInstance;
+}
 
 interface SendEmailOptions {
   to: string | string[];
@@ -17,7 +29,9 @@ interface SendEmailOptions {
  * Generic email sender
  */
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResend();
+
+  if (!resend) {
     console.log("\n========================================");
     console.log("📧 EMAIL SIMULATION (RESEND_API_KEY not configured)");
     console.log("========================================");

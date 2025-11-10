@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit";
+import { notifyNewDrive } from "@/lib/notifications";
 
 export async function GET(req: NextRequest) {
   try {
@@ -223,7 +224,10 @@ export async function POST(req: NextRequest) {
       req,
     });
 
-    // TODO: Create notification for eligible students
+    // Notify eligible students (run in background)
+    notifyNewDrive(drive.id).catch((err) =>
+      console.error("Failed to notify students about new drive:", err)
+    );
 
     return NextResponse.json(
       {

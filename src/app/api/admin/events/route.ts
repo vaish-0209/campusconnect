@@ -107,60 +107,58 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Check for conflicts (same venue, overlapping time)
-    if (data.venue) {
-      const conflicts = await prisma.event.findMany({
-        where: {
-          venue: data.venue,
-          OR: [
-            {
-              AND: [
-                { startTime: { lte: startTime } },
-                { endTime: { gt: startTime } },
-              ],
-            },
-            {
-              AND: [
-                { startTime: { lt: endTime } },
-                { endTime: { gte: endTime } },
-              ],
-            },
-            {
-              AND: [
-                { startTime: { gte: startTime } },
-                { endTime: { lte: endTime } },
-              ],
-            },
-          ],
-        },
-        include: {
-          drive: {
-            select: {
-              title: true,
-              company: { select: { name: true } },
-            },
-          },
-        },
-      });
-
-      if (conflicts.length > 0) {
-        return NextResponse.json(
+    // Check for time conflicts
+    const conflicts = await prisma.event.findMany({
+      where: {
+        OR: [
           {
-            error: "Venue conflict detected",
-            conflicts: conflicts.map((c) => ({
-              id: c.id,
-              title: c.title,
-              venue: c.venue,
-              startTime: c.startTime,
-              endTime: c.endTime,
-              drive: c.drive
-                ? `${c.drive.company.name} - ${c.drive.title}`
-                : null,
-            })),
+            AND: [
+              { startTime: { lte: startTime } },
+              { endTime: { gt: startTime } },
+            ],
           },
-          { status: 409 }
-        );
-      }
+          {
+            AND: [
+              { startTime: { lt: endTime } },
+              { endTime: { gte: endTime } },
+            ],
+          },
+          {
+            AND: [
+              { startTime: { gte: startTime } },
+              { endTime: { lte: endTime } },
+            ],
+          },
+        ],
+      },
+      include: {
+        drive: {
+          select: {
+            title: true,
+            company: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    if (conflicts.length > 0) {
+      return NextResponse.json(
+        {
+          error: "Time conflict detected. Another event is already scheduled at this time.",
+          conflicts: conflicts.map((c) => ({
+            id: c.id,
+            title: c.title,
+            type: c.type,
+            venue: c.venue,
+            startTime: c.startTime,
+            endTime: c.endTime,
+            drive: c.drive
+              ? `${c.drive.company.name} - ${c.drive.title}`
+              : null,
+          })),
+        },
+        { status: 409 }
+      );
     }
 
     const event = await prisma.event.create({

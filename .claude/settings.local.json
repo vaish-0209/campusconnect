@@ -46,7 +46,16 @@
       "Bash(npx vercel:*)",
       "Bash(set DATABASE_URL=postgresql://neondb_owner:WIDZFnGdqK9Y@ep-old-truth-ad4ez43b-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require)",
       "Bash(del srcappapiseedroute.ts)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git rm:*)",
+      "Bash(npx next:*)",
+      "Bash(ping:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(del update-logos.ts)",
+      "Bash(del cleanup-events.ts delete-duplicate-events.ts)",
+      "Bash(npm test)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []

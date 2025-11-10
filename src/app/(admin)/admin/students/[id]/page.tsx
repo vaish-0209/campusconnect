@@ -238,12 +238,12 @@ export default function StudentDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
+              <Link
+                href="/signout"
                 className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all"
               >
                 Logout
-              </button>
+              </Link>
             </div>
           </div>
         </div>

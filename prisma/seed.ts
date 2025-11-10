@@ -78,12 +78,12 @@ async function main() {
 
   // Create companies
   const companiesData = [
-    { name: "Google", sector: "Technology", website: "https://careers.google.com", logo: "https://logo.clearbit.com/google.com" },
-    { name: "Microsoft", sector: "Technology", website: "https://careers.microsoft.com", logo: "https://logo.clearbit.com/microsoft.com" },
-    { name: "Amazon", sector: "E-Commerce", website: "https://amazon.jobs", logo: "https://logo.clearbit.com/amazon.com" },
-    { name: "Infosys", sector: "IT Services", website: "https://infosys.com/careers", logo: "https://logo.clearbit.com/infosys.com" },
-    { name: "TCS", sector: "IT Services", website: "https://tcs.com/careers", logo: "https://logo.clearbit.com/tcs.com" },
-    { name: "Flipkart", sector: "E-Commerce", website: "https://flipkart.com/careers", logo: "https://logo.clearbit.com/flipkart.com" },
+    { name: "Google", sector: "Technology", website: "https://careers.google.com", logo: "https://www.google.com/favicon.ico" },
+    { name: "Microsoft", sector: "Technology", website: "https://careers.microsoft.com", logo: "https://www.microsoft.com/favicon.ico" },
+    { name: "Amazon", sector: "E-Commerce", website: "https://amazon.jobs", logo: "https://www.amazon.com/favicon.ico" },
+    { name: "Infosys", sector: "IT Services", website: "https://infosys.com/careers", logo: "https://www.infosys.com/favicon.ico" },
+    { name: "TCS", sector: "IT Services", website: "https://tcs.com/careers", logo: "https://www.tcs.com/favicon.ico" },
+    { name: "Flipkart", sector: "E-Commerce", website: "https://flipkart.com/careers", logo: "https://www.flipkart.com/favicon.ico" },
   ];
 
   const companies = [];

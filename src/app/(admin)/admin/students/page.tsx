@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Upload, Search, Filter, UserPlus, X, Download } from "lucide-react";
+import { Upload, Search, Filter, UserPlus, X, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import * as XLSX from 'xlsx';
 
 interface Student {
@@ -23,6 +23,9 @@ interface Student {
   offersCount: number;
 }
 
+type SortField = 'rollNo' | 'name' | 'cgpa' | 'backlogs' | 'applicationsCount' | 'offersCount';
+type SortOrder = 'asc' | 'desc';
+
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +34,8 @@ export default function AdminStudentsPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 50;
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [showAddModal, setShowAddModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -51,6 +56,61 @@ export default function AdminStudentsPage() {
   useEffect(() => {
     fetchStudents();
   }, [search, branch, page]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle sort order if clicking same field
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new field and default to ascending
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedStudents = () => {
+    if (!sortField) return students;
+
+    const sorted = [...students].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortField) {
+        case 'rollNo':
+          aValue = a.rollNo;
+          bValue = b.rollNo;
+          break;
+        case 'name':
+          aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+          bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+          break;
+        case 'cgpa':
+          aValue = a.cgpa;
+          bValue = b.cgpa;
+          break;
+        case 'backlogs':
+          aValue = a.backlogs;
+          bValue = b.backlogs;
+          break;
+        case 'applicationsCount':
+          aValue = a.applicationsCount;
+          bValue = b.applicationsCount;
+          break;
+        case 'offersCount':
+          aValue = a.offersCount;
+          bValue = b.offersCount;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  };
 
   const fetchStudents = async () => {
     try {
@@ -204,6 +264,23 @@ export default function AdminStudentsPage() {
 
   const totalPages = Math.ceil(total / limit);
 
+  const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => {
+    const isActive = sortField === field;
+    const Icon = isActive ? (sortOrder === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown;
+
+    return (
+      <th
+        onClick={() => handleSort(field)}
+        className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-card/50 transition-colors group select-none"
+      >
+        <div className="flex items-center gap-2">
+          {children}
+          <Icon className={`w-4 h-4 transition-all ${isActive ? 'opacity-100 text-primary' : 'opacity-0 group-hover:opacity-60'}`} />
+        </div>
+      </th>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated gradient orbs */}
@@ -244,12 +321,12 @@ export default function AdminStudentsPage() {
               <Link href="/admin/analytics" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-all">
                 Analytics
               </Link>
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
+              <Link
+                href="/signout"
                 className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all"
               >
                 Logout
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -359,30 +436,18 @@ export default function AdminStudentsPage() {
               <table className="min-w-full">
                 <thead className="bg-card/50 border-b border-border/50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Roll No
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Name
-                    </th>
+                    <SortableHeader field="rollNo">Roll No</SortableHeader>
+                    <SortableHeader field="name">Name</SortableHeader>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Email
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Branch
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      CGPA
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Backlogs
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Applications
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Offers
-                    </th>
+                    <SortableHeader field="cgpa">CGPA</SortableHeader>
+                    <SortableHeader field="backlogs">Backlogs</SortableHeader>
+                    <SortableHeader field="applicationsCount">Applications</SortableHeader>
+                    <SortableHeader field="offersCount">Offers</SortableHeader>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Status
                     </th>
@@ -392,7 +457,7 @@ export default function AdminStudentsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {students.map((student) => (
+                  {sortedStudents().map((student) => (
                     <tr key={student.id} className="hover:bg-card/30 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {student.rollNo}

@@ -33,14 +33,59 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Pre-check for duplicates
+    const emailsToCheck = students.map(s => s.email || s.Email).filter(Boolean);
+    const rollNosToCheck = students.map(s => s.rollNo || s.rollno).filter(Boolean);
+
+    const existingUsers = await prisma.user.findMany({
+      where: {
+        email: { in: emailsToCheck }
+      },
+      select: { email: true }
+    });
+
+    const existingStudents = await prisma.student.findMany({
+      where: {
+        rollNo: { in: rollNosToCheck }
+      },
+      select: { rollNo: true }
+    });
+
+    const duplicateEmails = new Set(existingUsers.map(u => u.email));
+    const duplicateRollNos = new Set(existingStudents.map(s => s.rollNo));
+
+    const duplicates: any[] = [];
+    const validStudents: any[] = [];
+
+    // Separate duplicates from valid students
+    students.forEach((student, index) => {
+      const email = student.email || student.Email;
+      const rollNo = student.rollNo || student.rollno;
+
+      if (duplicateEmails.has(email) || duplicateRollNos.has(rollNo)) {
+        duplicates.push({
+          row: index + 1,
+          rollNo,
+          email,
+          reason: duplicateEmails.has(email) ? 'Email already exists' : 'Roll number already exists'
+        });
+      } else {
+        validStudents.push({ ...student, _rowIndex: index });
+      }
+    });
+
     const results = {
       imported: 0,
       failed: 0,
+      skipped: duplicates.length,
       errors: [] as any[],
+      duplicates: duplicates,
     };
 
-    for (let i = 0; i < students.length; i++) {
-      const studentData = students[i];
+    // Import only valid students
+    for (let i = 0; i < validStudents.length; i++) {
+      const studentData = validStudents[i];
+      const rowIndex = studentData._rowIndex + 1;
 
       try {
         // Normalize field names (handle both camelCase and lowercase)
@@ -62,36 +107,6 @@ export async function POST(req: NextRequest) {
             ? parseInt(normalizedData.backlogs)
             : 0,
         });
-
-        // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
-          where: { email: validated.email },
-        });
-
-        if (existingUser) {
-          results.failed++;
-          results.errors.push({
-            row: i + 1,
-            email: validated.email,
-            error: "Email already exists",
-          });
-          continue;
-        }
-
-        // Check if roll number already exists
-        const existingStudent = await prisma.student.findUnique({
-          where: { rollNo: validated.rollNo },
-        });
-
-        if (existingStudent) {
-          results.failed++;
-          results.errors.push({
-            row: i + 1,
-            rollNo: validated.rollNo,
-            error: "Roll number already exists",
-          });
-          continue;
-        }
 
         // Generate invite token
         const inviteToken = crypto.randomBytes(32).toString("hex");
@@ -132,7 +147,7 @@ export async function POST(req: NextRequest) {
         }
 
         results.errors.push({
-          row: i + 1,
+          row: rowIndex,
           data: studentData,
           error: errorMessage,
         });
@@ -144,7 +159,9 @@ export async function POST(req: NextRequest) {
         success: true,
         imported: results.imported,
         failed: results.failed,
+        skipped: results.skipped,
         errors: results.errors,
+        duplicates: results.duplicates,
         invitesSent: results.imported,
       },
       { status: 201 }

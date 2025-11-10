@@ -6,6 +6,7 @@ import Link from "next/link";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { StatCard } from "@/components/ui/stat-card";
 import { Users, CheckCircle, Building2, Zap, Award } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface DashboardStats {
   totalStudents: number;
@@ -97,12 +98,12 @@ export default function AdminDashboard() {
                 Analytics
               </Link>
               <span className="text-sm text-muted-foreground">{session?.user?.name}</span>
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
+              <Link
+                href="/signout"
                 className="px-5 py-2 bg-card border border-border/50 text-foreground text-sm font-medium rounded-full hover:border-primary/30 transition-all"
               >
                 Logout
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -111,87 +112,237 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
         {/* Welcome Section */}
-        <div className="mb-12">
+        <motion.div
+          className="mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <h2 className="text-5xl font-bold bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
             Welcome back, {session?.user?.name?.split(" ")[0]}
           </h2>
           <p className="text-lg text-muted-foreground">Here's what's happening with your placements today</p>
-        </div>
+        </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <StatCard
-            title="Total Students"
-            value={stats?.totalStudents || 0}
-            icon={Users}
-            iconColor="text-primary"
-            href="/admin/students"
-          />
-          <StatCard
-            title="Active Drives"
-            value={stats?.activeDrives || 0}
-            icon={Zap}
-            iconColor="text-orange-400"
-            href="/admin/drives"
-          />
-          <StatCard
-            title="Companies"
-            value={stats?.totalCompanies || 0}
-            icon={Building2}
-            iconColor="text-blue-400"
-            href="/admin/companies"
-          />
-          <StatCard
-            title="Placement Rate"
-            value={`${placementRate}%`}
-            icon={Award}
-            iconColor="text-green-400"
-            change={stats?.placedStudents ? `${stats.placedStudents} placed` : undefined}
-            changeType="positive"
-            href="/admin/analytics"
-          />
-        </div>
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.05,
+                delayChildren: 0.1,
+              },
+            },
+          }}
+        >
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            <StatCard
+              title="Total Students"
+              value={stats?.totalStudents || 0}
+              icon={Users}
+              iconColor="text-primary"
+              href="/admin/students"
+            />
+          </motion.div>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            <StatCard
+              title="Active Drives"
+              value={stats?.activeDrives || 0}
+              icon={Zap}
+              iconColor="text-orange-400"
+              href="/admin/drives"
+            />
+          </motion.div>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            <StatCard
+              title="Companies"
+              value={stats?.totalCompanies || 0}
+              icon={Building2}
+              iconColor="text-blue-400"
+              href="/admin/companies"
+            />
+          </motion.div>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            <StatCard
+              title="Placement Rate"
+              value={`${placementRate}%`}
+              icon={Award}
+              iconColor="text-green-400"
+              change={stats?.placedStudents ? `${stats.placedStudents} placed` : undefined}
+              changeType="positive"
+              href="/admin/analytics"
+            />
+          </motion.div>
+        </motion.div>
 
         {/* Quick Actions */}
-        <div className="mb-12">
+        <motion.div
+          className="mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Link href="/admin/students/import" className="glass-card border border-border/50 rounded-xl px-6 py-5 hover:border-primary/30 transition-all flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-all">
-                <Users className="w-5 h-5 text-primary" />
-              </div>
-              <span className="text-sm font-medium text-foreground">Import Students</span>
-            </Link>
-            <Link href="/admin/companies/add" className="glass-card border border-border/50 rounded-xl px-6 py-5 hover:border-primary/30 transition-all flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:bg-blue-500/20 transition-all">
-                <Building2 className="w-5 h-5 text-blue-400" />
-              </div>
-              <span className="text-sm font-medium text-foreground">Add Company</span>
-            </Link>
-            <Link href="/admin/drives/new" className="glass-card border border-border/50 rounded-xl px-6 py-5 hover:border-primary/30 transition-all flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20 group-hover:bg-orange-500/20 transition-all">
-                <Zap className="w-5 h-5 text-orange-400" />
-              </div>
-              <span className="text-sm font-medium text-foreground">Create Drive</span>
-            </Link>
-            <Link href="/admin/analytics" className="glass-card border border-border/50 rounded-xl px-6 py-5 hover:border-primary/30 transition-all flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 group-hover:bg-cyan-500/20 transition-all">
-                <Award className="w-5 h-5 text-cyan-400" />
-              </div>
-              <span className="text-sm font-medium text-foreground">View Analytics</span>
-            </Link>
-          </div>
-        </div>
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-4 gap-4"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.04,
+                  delayChildren: 0.25,
+                },
+              },
+            }}
+          >
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, scale: 0.9 },
+                visible: { opacity: 1, scale: 1 },
+              }}
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link href="/admin/students/import" className="glass-card border border-border/50 rounded-xl px-6 py-5 hover:border-primary/30 transition-all flex items-center gap-4 group">
+                <motion.div
+                  className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-all"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Users className="w-5 h-5 text-primary" />
+                </motion.div>
+                <span className="text-sm font-medium text-foreground">Import Students</span>
+              </Link>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, scale: 0.9 },
+                visible: { opacity: 1, scale: 1 },
+              }}
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link href="/admin/companies/add" className="glass-card border border-border/50 rounded-xl px-6 py-5 hover:border-primary/30 transition-all flex items-center gap-4 group">
+                <motion.div
+                  className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:bg-blue-500/20 transition-all"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Building2 className="w-5 h-5 text-blue-400" />
+                </motion.div>
+                <span className="text-sm font-medium text-foreground">Add Company</span>
+              </Link>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, scale: 0.9 },
+                visible: { opacity: 1, scale: 1 },
+              }}
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link href="/admin/drives/new" className="glass-card border border-border/50 rounded-xl px-6 py-5 hover:border-primary/30 transition-all flex items-center gap-4 group">
+                <motion.div
+                  className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20 group-hover:bg-orange-500/20 transition-all"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Zap className="w-5 h-5 text-orange-400" />
+                </motion.div>
+                <span className="text-sm font-medium text-foreground">Create Drive</span>
+              </Link>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, scale: 0.9 },
+                visible: { opacity: 1, scale: 1 },
+              }}
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link href="/admin/analytics" className="glass-card border border-border/50 rounded-xl px-6 py-5 hover:border-primary/30 transition-all flex items-center gap-4 group">
+                <motion.div
+                  className="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 group-hover:bg-cyan-500/20 transition-all"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Award className="w-5 h-5 text-cyan-400" />
+                </motion.div>
+                <span className="text-sm font-medium text-foreground">View Analytics</span>
+              </Link>
+            </motion.div>
+          </motion.div>
+        </motion.div>
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.35 }}
+        >
           {/* Recent Applications */}
-          <div className="glass-card border border-border/50 rounded-xl p-6">
+          <motion.div
+            className="glass-card border border-border/50 rounded-xl p-6"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
+          >
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">Recent Applications</h3>
-            <div className="space-y-3">
+            <motion.div
+              className="space-y-3"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.03,
+                    delayChildren: 0.45,
+                  },
+                },
+              }}
+            >
               {stats?.recentApplications && stats.recentApplications.length > 0 ? (
-                stats.recentApplications.map((app) => (
-                  <div key={app.id} className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-all bg-card/30">
+                stats.recentApplications.map((app, index) => (
+                  <motion.div
+                    key={app.id}
+                    variants={{
+                      hidden: { opacity: 0, x: -10 },
+                      visible: { opacity: 1, x: 0 },
+                    }}
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-all bg-card/30 cursor-pointer"
+                  >
                     <div>
                       <p className="text-sm font-medium text-foreground">{app.studentName}</p>
                       <p className="text-xs text-muted-foreground mt-1">{app.companyName}</p>
@@ -203,43 +354,70 @@ export default function AdminDashboard() {
                     }`}>
                       {app.status}
                     </span>
-                  </div>
+                  </motion.div>
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-12">No recent applications</p>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Upcoming Drives */}
-          <div className="glass-card border border-border/50 rounded-xl p-6">
+          <motion.div
+            className="glass-card border border-border/50 rounded-xl p-6"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
+          >
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">Upcoming Drives</h3>
-            <div className="space-y-3">
+            <motion.div
+              className="space-y-3"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.03,
+                    delayChildren: 0.45,
+                  },
+                },
+              }}
+            >
               {stats?.upcomingDrives && stats.upcomingDrives.length > 0 ? (
-                stats.upcomingDrives.map((drive) => (
-                  <Link
+                stats.upcomingDrives.map((drive, index) => (
+                  <motion.div
                     key={drive.id}
-                    href={`/admin/drives/${drive.id}`}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-primary/50 transition-all bg-card/30 group"
+                    variants={{
+                      hidden: { opacity: 0, x: 10 },
+                      visible: { opacity: 1, x: 0 },
+                    }}
+                    whileHover={{ scale: 1.02, x: -4 }}
                   >
-                    <div>
-                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{drive.companyName}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{drive.role}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-muted-foreground">Deadline</p>
-                      <p className="text-xs font-medium text-foreground mt-1">
-                        {new Date(drive.deadline).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </Link>
+                    <Link
+                      href={`/admin/drives/${drive.id}`}
+                      className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-primary/50 transition-all bg-card/30 group block"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{drive.companyName}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{drive.role}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Deadline</p>
+                        <p className="text-xs font-medium text-foreground mt-1">
+                          {new Date(drive.deadline).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </Link>
+                  </motion.div>
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-12">No upcoming drives</p>
               )}
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

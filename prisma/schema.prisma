@@ -263,3 +263,4 @@ model AuditLog {
   @@index([target, targetId])
   @@index([createdAt])
 }
+

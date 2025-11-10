@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ApplicationStatus } from "@prisma/client";
 import { createAuditLog } from "@/lib/audit";
+import { notifyApplicationStatusChange } from "@/lib/notifications";
 
 export async function POST(
   req: NextRequest,
@@ -80,6 +81,7 @@ export async function POST(
         }
 
         // Update application
+        const oldStatus = application.status;
         await prisma.application.update({
           where: { id: application.id },
           data: {
@@ -88,7 +90,12 @@ export async function POST(
           },
         });
 
-        // TODO: Create notification if notifyStudents is true
+        // Notify student if requested
+        if (notifyStudents && oldStatus !== status) {
+          notifyApplicationStatusChange(application.id, oldStatus, status).catch((err) =>
+            console.error("Failed to notify student:", err)
+          );
+        }
 
         results.updated++;
       } catch (error) {

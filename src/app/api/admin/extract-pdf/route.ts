@@ -5,10 +5,15 @@ import OpenAI from "openai";
 // @ts-ignore
 import pdfParse from "pdf-parse";
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI (only if API key is available)
+const getOpenAI = () => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OpenAI API key not configured");
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,6 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Use OpenAI to extract structured data
+    const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [

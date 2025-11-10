@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import OpenAI from "openai";
-// @ts-ignore
-import pdfParse from "pdf-parse";
+
+// Use require for pdf-parse to avoid ESM import issues
+const pdfParse = require("pdf-parse");
 
 // Initialize OpenAI (only if API key is available)
 const getOpenAI = () => {
